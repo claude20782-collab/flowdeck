@@ -126,6 +126,20 @@
     overflow-x: hidden;
     -webkit-tap-highlight-color: transparent;
   }
+  /* Wallpaper / theme gradient layer — painted under all content,
+   * above the flat base color. Blur-safe with bleed. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: calc(-1 * var(--wallpaper-bleed, 0px));
+    z-index: -1;
+    pointer-events: none;
+    background-image: var(--app-bg-image);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    filter: var(--wallpaper-filter, none);
+  }
   ::selection {
     background: color-mix(in srgb, var(--accent) 35%, transparent);
     color: var(--text);

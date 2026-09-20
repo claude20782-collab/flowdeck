@@ -55,14 +55,16 @@ export function applyTheme(
         `url("${wallpaper.value}")`,
       ].join(", ");
       if (wBlur > 0) {
-        // Approximate blur by scaling + blurring the wallpaper layer
-        root.setProperty("--wallpaper-filter", `blur(${wBlur}px)`);
+        root.setProperty("--wallpaper-filter", `blur(${wBlur}px) saturate(1.05)`);
+        root.setProperty("--wallpaper-bleed", `${Math.max(8, wBlur)}px`);
       } else {
         root.removeProperty("--wallpaper-filter");
+        root.removeProperty("--wallpaper-bleed");
       }
     }
   } else {
     root.removeProperty("--wallpaper-filter");
+    root.removeProperty("--wallpaper-bleed");
   }
 
   root.setProperty("--app-bg", bg);
