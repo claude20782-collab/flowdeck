@@ -250,3 +250,42 @@ Work Log:
 Stage Summary:
 - App fully renders and works: timer ticks + survives reload, task persistence (IndexedDB) verified, theme switching instant via palette (CSS vars verified), workspace switching, panel system, edit mode (add/remove/resize widgets), study system with real chapters+PYQ data flowing into JEE dashboard + analytics, stopwatch session recorded in history, heatmap shows real activity, mobile/tablet/landscape/desktop no overflow, mobile bottom nav + 8/10 VLM rating
 - Lint: 0 errors. TypeScript: clean.
+
+---
+Task ID: QA-round-2 (lead, cron cycle)
+Agent: lead (main session)
+Task: Bug-fix round — wallpaper rendering, SW staleness; features — palette quick-create, widget skeletons
+
+## Current project status / assessment
+- Flowdeck is functionally complete and stable: 20 widgets, 9 panels, timer engine (timestamp-based, reload-surviving),
+  28+custom themes, wallpaper system, JEE study system, analytics, PWA (SW v3 + offline shell), backup import/export.
+- TypeScript clean, ESLint clean, 0 page errors in fresh browser sessions, GitHub repo pushed (claude20782-collab/flowdeck).
+- Known test-tooling quirk (NOT an app bug): agent-browser `type` command sometimes misses controlled inputs; use
+  programmatic value-setter + input event, or `fill`. Real keyboard input works (Enter-submit verified on both composers).
+
+## Goals / completed modifications / verification results (this round)
+1. FIXED wallpaper rendering bug (major): `--app-bg-image` (theme gradients + user wallpapers) was defined but never
+   painted. Added fixed `body::before` layer in globals.css (cover, center, z-index -1) + `--wallpaper-bleed`/saturate
+   filter for blurred image wallpapers in apply.ts. VLM-verified: Twilight gradient now visible behind glass widgets,
+   text readable.
+2. FIXED service-worker staleness (2 iterations): SW v1 cache-first froze dev chunks. v2 network-first still stale
+   because SW's own fetch() hit the browser HTTP cache. v3 uses `fetch(request, {cache:"reload"})` for assets —
+   verified fresh chunks served through SW. NOTE: a concurrent cron cycle overwrote sw.js mid-session (watch for
+   concurrent modifications; re-verify after each cycle).
+3. FEATURE palette quick-create: "Add task to today…" / "Capture a note…" commands with keepOpen inline composer
+   (focused input, Enter creates, Esc returns to search, disabled submit until text). Verified end-to-end: task
+   persisted to IndexedDB + visible in Planning workspace; note persisted with content.
+4. POLISH widget loading skeletons: all 20 dynamic() widgets get a shimmer placeholder (widget-skeleton.tsx) so
+   lazy chunks don't pop in. Renamed widget-registry.ts → .tsx.
+5. Cleaned leftover __smoke-themes.tsx.
+- Committed & pushed: 5bf104f (+ interim background commit 11f156a contained globals/apply wallpaper fix).
+
+## Unresolved issues / risks / next-phase priorities
+- MEDIUM: dev-server in-memory chunk cache occasionally needs a restart after external (non-Next) file writes —
+  if a code change doesn't appear in browser, `pkill -f "next dev"`, rm -rf .next/dev/cache, restart, reload.
+- MEDIUM: concurrent cron cycles edit the repo between rounds — always `git diff` / verify file content before
+  deep-debugging (sw.js was overwritten this round).
+- NEXT (suggested): (a) focus-mode session-goal ring (target hours/day), (b) tasks panel virtualization for 500+
+  tasks, (c) habit heatmap year view, (d) study calendar (planned vs actual), (e) theme gallery hover previews with
+  live animation, (f) export/import e2e test with fresh browser profile, (g) reduce initial JS via panel-level
+  code-splitting audit.
