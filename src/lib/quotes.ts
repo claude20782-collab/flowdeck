@@ -1,0 +1,85 @@
+/* Curated focus/discipline quotes. Short, attributed, public-domain-leaning. */
+
+export interface Quote {
+  text: string;
+  author: string;
+}
+
+export const QUOTES: Quote[] = [
+  { text: "It is not that we have a short time to live, but that we waste a lot of it.", author: "Seneca" },
+  { text: "Well begun is half done.", author: "Aristotle" },
+  { text: "We suffer more often in imagination than in reality.", author: "Seneca" },
+  { text: "You have power over your mind — not outside events. Realize this, and you will find strength.", author: "Marcus Aurelius" },
+  { text: "The impediment to action advances action. What stands in the way becomes the way.", author: "Marcus Aurelius" },
+  { text: "He who has a why to live can bear almost any how.", author: "Friedrich Nietzsche" },
+  { text: "Knowing is not enough; we must apply. Willing is not enough; we must do.", author: "Johann Wolfgang von Goethe" },
+  { text: "Genius is one percent inspiration and ninety-nine percent perspiration.", author: "Thomas Edison" },
+  { text: "Amateurs sit and wait for inspiration, the rest of us just get up and go to work.", author: "Stephen King" },
+  { text: "The best way out is always through.", author: "Robert Frost" },
+  { text: "Do not wait to strike till the iron is hot; but make it hot by striking.", author: "William B. Sprague" },
+  { text: "Concentrate all your thoughts upon the work in hand.", author: "Alexander Graham Bell" },
+  { text: "The successful warrior is the average person, with laser-like focus.", author: "Bruce Lee" },
+  { text: "Simplicity is the ultimate sophistication.", author: "Leonardo da Vinci" },
+  { text: "Time you enjoy wasting is not wasted time.", author: "Bertrand Russell" },
+  { text: "Nothing is less productive than to make more efficient what should not be done at all.", author: "Peter Drucker" },
+  { text: "What gets measured gets managed.", author: "Peter Drucker" },
+  { text: "Discipline equals freedom.", author: "Jocko Willink" },
+  { text: "Don't watch the clock; do what it does. Keep going.", author: "Sam Levenson" },
+  { text: "A year from now you may wish you had started today.", author: "Karen Lamb" },
+  { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
+  { text: "Continuous improvement is better than delayed perfection.", author: "Mark Twain" },
+  { text: "Either you run the day or the day runs you.", author: "Jim Rohn" },
+  { text: "Motivation is what gets you started. Habit is what keeps you going.", author: "Jim Ryun" },
+  { text: "Small deeds done are better than great deeds planned.", author: "Peter Marshall" },
+  { text: "Energy and persistence conquer all things.", author: "Benjamin Franklin" },
+  { text: "By failing to prepare, you are preparing to fail.", author: "Benjamin Franklin" },
+  { text: "Lost time is never found again.", author: "Benjamin Franklin" },
+  { text: "Patience and diligence, like faith, remove mountains.", author: "William Penn" },
+  { text: "The expert in anything was once a beginner.", author: "Helen Hayes" },
+  { text: "Striving for excellence motivates; striving for perfection is demoralizing.", author: "Harriet Braiker" },
+  { text: "Perfection is not attainable, but if we chase perfection we can catch excellence.", author: "Vince Lombardi" },
+  { text: "It's not whether you get knocked down; it's whether you get up.", author: "Vince Lombardi" },
+  { text: "The difference between ordinary and extraordinary is that little extra.", author: "Jimmy Johnson" },
+  { text: "Success is the sum of small efforts repeated day in and day out.", author: "Robert Collier" },
+  { text: "Intelligence without ambition is a bird without wings.", author: "Salvador Dalí" },
+  { text: "The mind is not a vessel to be filled but a fire to be kindled.", author: "Plutarch" },
+  { text: "First say to yourself what you would be; then do what you have to do.", author: "Epictetus" },
+  { text: "No man is free who is not master of himself.", author: "Epictetus" },
+  { text: "Waste no more time arguing what a good person should be. Be one.", author: "Marcus Aurelius" },
+  { text: "Difficulties strengthen the mind, as labor does the body.", author: "Seneca" },
+  { text: "Luck is what happens when preparation meets opportunity.", author: "Seneca" },
+  { text: "While we wait for life, life passes.", author: "Seneca" },
+  { text: "Begin at once to live, and count each separate day as a separate life.", author: "Seneca" },
+  { text: "A room without books is like a body without a soul.", author: "Cicero" },
+  { text: "The life given us, by nature is short; but the memory of a well-spent life is eternal.", author: "Cicero" },
+  { text: "Study hard what interests you the most in the most undisciplined, irreverent and original manner possible.", author: "Richard Feynman" },
+  { text: "The first principle is that you must not fool yourself and you are the easiest person to fool.", author: "Richard Feynman" },
+  { text: "I have not failed. I've just found 10,000 ways that won't work.", author: "Thomas Edison" },
+  { text: "Our greatest weakness lies in giving up. The most certain way to succeed is to try one more time.", author: "Thomas Edison" },
+  { text: "If I have seen further it is by standing on the shoulders of giants.", author: "Isaac Newton" },
+  { text: "Truth is ever to be found in simplicity, and not in the multiplicity and confusion of things.", author: "Isaac Newton" },
+  { text: "An investment in knowledge pays the best interest.", author: "Benjamin Franklin" },
+  { text: "Tell me and I forget. Teach me and I remember. Involve me and I learn.", author: "Benjamin Franklin" },
+  { text: "There are no shortcuts to any place worth going.", author: "Beverly Sills" },
+  { text: "Great things are not done by impulse, but by a series of small things brought together.", author: "Vincent van Gogh" },
+  { text: "What would life be if we had no courage to attempt anything?", author: "Vincent van Gogh" },
+  { text: "I am seeking, I am striving, I am in it with all my heart.", author: "Vincent van Gogh" },
+  { text: "If you hear a voice within you say 'you cannot paint,' then by all means paint, and that voice will be silenced.", author: "Vincent van Gogh" },
+  { text: "The obstacle is the path.", author: "Zen proverb" },
+  { text: "When you sit, sit. When you walk, walk. Above all, don't wobble.", author: "Zen proverb" },
+  { text: "Before enlightenment, chop wood, carry water. After enlightenment, chop wood, carry water.", author: "Zen proverb" },
+  { text: "Fall seven times, stand up eight.", author: "Japanese proverb" },
+  { text: "Vision without action is a daydream. Action without vision is a nightmare.", author: "Japanese proverb" },
+  { text: "The journey of a thousand miles begins with a single step.", author: "Lao Tzu" },
+  { text: "Nature does not hurry, yet everything is accomplished.", author: "Lao Tzu" },
+  { text: "Mastery is the result of thousands of tiny acts nobody sees.", author: "Anonymous" },
+  { text: "You don't have to be great to start, but you have to start to be great.", author: "Zig Ziglar" },
+  { text: "Lack of direction, not lack of time, is the problem. We all have twenty-four hour days.", author: "Zig Ziglar" },
+];
+
+/** Deterministic daily quote (stable within a day). */
+export function quoteOfDay(dateKey: string): Quote {
+  let h = 0;
+  for (let i = 0; i < dateKey.length; i++) h = (h * 31 + dateKey.charCodeAt(i)) >>> 0;
+  return QUOTES[h % QUOTES.length];
+}

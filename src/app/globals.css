@@ -1,0 +1,416 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  /* Flowdeck theme bridge tokens */
+  --color-accent-2: var(--accent-2);
+  --color-positive: var(--positive);
+  --color-negative: var(--negative);
+  --color-warning: var(--warning);
+  --color-surface-solid: var(--card-solid);
+}
+
+/*
+ * ============================================================
+ * Flowdeck theme runtime variables.
+ * The ThemeApplier writes these on <html> at runtime.
+ * Fallbacks = "Midnight" (default theme).
+ * ============================================================
+ */
+:root {
+  --app-bg: #0b0d12;
+  --app-bg-image: none;
+  --text: #e7e9ee;
+  --text-muted: #8b90a0;
+  --accent: #e8a849;
+  --accent-fg: #17130a;
+  --accent-2: #c46a4e;
+  --positive: #4caf7d;
+  --negative: #e0566b;
+  --warning: #e8a849;
+  --border-c: rgba(231, 233, 238, 0.09);
+  --card: rgba(24, 27, 36, 0.72);
+  --card-solid: #181b24;
+  --popover: rgba(24, 27, 36, 0.94);
+  --blur: 14px;
+  --app-radius: 1rem;
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.25);
+  --shadow-2: 0 8px 30px rgba(0, 0, 0, 0.35);
+  --shadow-3: 0 20px 60px rgba(0, 0, 0, 0.5);
+  --accent-glow: 0 0 40px color-mix(in srgb, var(--accent) 25%, transparent);
+  --font-app: var(--font-geist-sans);
+  --grain-opacity: 0;
+
+  /* shadcn bridge (keeps every shadcn/ui component theme-correct) */
+  --radius: 1rem;
+  --background: var(--app-bg);
+  --foreground: var(--text);
+  --card-foreground: var(--text);
+  --popover-foreground: var(--text);
+  --primary: var(--accent);
+  --primary-foreground: var(--accent-fg);
+  --secondary: color-mix(in srgb, var(--card-solid) 84%, var(--text));
+  --secondary-foreground: var(--text);
+  --muted: color-mix(in srgb, var(--card-solid) 86%, var(--text));
+  --muted-foreground: var(--text-muted);
+  --accent-foreground: var(--accent-fg);
+  --destructive: var(--negative);
+  --border: var(--border-c);
+  --input: var(--border-c);
+  --ring: color-mix(in srgb, var(--accent) 65%, transparent);
+  --chart-1: var(--accent);
+  --chart-2: var(--accent-2);
+  --chart-3: var(--positive);
+  --chart-4: var(--warning);
+  --chart-5: var(--text-muted);
+  --sidebar: var(--popover);
+  --sidebar-foreground: var(--text);
+  --sidebar-primary: var(--accent);
+  --sidebar-primary-foreground: var(--accent-fg);
+  --sidebar-accent: var(--secondary);
+  --sidebar-accent-foreground: var(--text);
+  --sidebar-border: var(--border-c);
+  --sidebar-ring: var(--ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    scrollbar-gutter: stable;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-app);
+    transition: background-color 0.45s ease, color 0.45s ease;
+    overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
+  }
+  ::selection {
+    background: color-mix(in srgb, var(--accent) 35%, transparent);
+    color: var(--text);
+  }
+  /* Theme-aware slim scrollbars */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--text) 18%, transparent) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--text) 16%, transparent);
+    border-radius: 999px;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in srgb, var(--text) 28%, transparent);
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  button, [role="button"] {
+    cursor: pointer;
+  }
+}
+
+/* ============================================================
+ * Flowdeck design-system primitives
+ * ============================================================ */
+
+/* Widget / panel surface — the core visual language */
+.widget {
+  position: relative;
+  background: var(--card);
+  backdrop-filter: blur(var(--blur)) saturate(1.3);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(1.3);
+  border: 1px solid var(--border-c);
+  border-radius: var(--app-radius);
+  box-shadow: var(--shadow-1);
+  transition: border-color 0.25s ease, box-shadow 0.3s ease, background-color 0.3s ease, transform 0.2s ease;
+}
+.widget-hover:hover {
+  border-color: color-mix(in srgb, var(--text) 16%, transparent);
+  box-shadow: var(--shadow-2);
+}
+.widget-solid {
+  background: var(--card-solid);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* Film grain overlay for themes that want texture */
+.grain-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: var(--grain-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+  mix-blend-mode: overlay;
+}
+
+/* Tabular numerals for clocks/timers */
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* Display numerals */
+.display-time {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  font-weight: 200;
+}
+.display-time strong {
+  font-weight: 600;
+}
+
+/* Accent text */
+.text-accent {
+  color: var(--accent);
+}
+.text-accent-2 {
+  color: var(--accent-2);
+}
+.text-muted-c {
+  color: var(--text-muted);
+}
+.bg-accent-c {
+  background: var(--accent);
+}
+
+/* Hairline separators */
+.hairline {
+  border-color: var(--border-c);
+}
+
+/* Subtle press feedback for touch */
+.press {
+  transition: transform 0.12s ease, filter 0.12s ease;
+}
+.press:active {
+  transform: scale(0.97);
+}
+
+/* Focus ring visible and theme aware */
+:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 80%, transparent);
+  outline-offset: 2px;
+}
+
+/* Range inputs (volume sliders) */
+input[type="range"].fd-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 20px;
+  background: transparent;
+  cursor: pointer;
+}
+input[type="range"].fd-range::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 14%, transparent);
+}
+input[type="range"].fd-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  margin-top: -5px;
+  border-radius: 999px;
+  background: var(--accent);
+  border: 2px solid color-mix(in srgb, var(--card-solid) 80%, var(--accent));
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
+  transition: transform 0.15s ease;
+}
+input[type="range"].fd-range:hover::-webkit-slider-thumb {
+  transform: scale(1.15);
+}
+input[type="range"].fd-range::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 14%, transparent);
+}
+input[type="range"].fd-range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: var(--accent);
+  border: 2px solid color-mix(in srgb, var(--card-solid) 80%, var(--accent));
+}
+
+/* checkbox / radio scale for touch */
+@media (pointer: coarse) {
+  input[type="checkbox"], input[type="radio"] {
+    width: 1.15rem;
+    height: 1.15rem;
+  }
+}
+
+/* Custom scroll area for long lists */
+.fd-scroll {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  overscroll-behavior: contain;
+}
+
+/* Skeleton shimmer */
+.fd-skeleton {
+  position: relative;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--text) 7%, transparent);
+}
+.fd-skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--text) 8%, transparent), transparent);
+  animation: fd-shimmer 1.6s infinite;
+}
+@keyframes fd-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Entrance micro-animations */
+@keyframes fd-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.fd-rise {
+  animation: fd-rise 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes fd-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.fd-fade {
+  animation: fd-fade 0.3s ease both;
+}
+
+@keyframes fd-pop {
+  0% { opacity: 0; transform: scale(0.96) translateY(8px); }
+  100% { opacity: 1; transform: none; }
+}
+.fd-pop {
+  animation: fd-pop 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* completion burst for tasks/habits */
+@keyframes fd-burst {
+  0% { transform: scale(0.4); opacity: 0.9; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+.fd-burst {
+  animation: fd-burst 0.5s ease-out both;
+}
+
+/* soft pulse for live indicator */
+@keyframes fd-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+.fd-pulse {
+  animation: fd-pulse 2s ease-in-out infinite;
+}
+
+/* Hide scrollbars where intentional (swipe rails) */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Reduced motion: kill all animations/transitions */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+.fd-motion-off *, .fd-motion-off *::before, .fd-motion-off *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+/* Safe-area aware bottom nav */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.safe-bottom-extra {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 0.5rem);
+}
+
+/* Hide cursor after inactivity in immersive focus mode */
+.cursor-hidden, .cursor-hidden * {
+  cursor: none !important;
+}
+
+/* Dialog / sheet backdrop harmonization */
+[data-radix-dialog-overlay] {
+  background: color-mix(in srgb, #000 55%, transparent) !important;
+  backdrop-filter: blur(6px);
+}
+
+/* Toast theming via sonner config, base here */
+[data-sonner-toast] {
+  border-radius: var(--app-radius) !important;
+}
