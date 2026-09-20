@@ -248,7 +248,8 @@ export type WidgetType =
   | "session-history"
   | "daily-review"
   | "pyq"
-  | "mock";
+  | "mock"
+  | "music";
 
 /** 1 = quarter, 2 = half, 3 = wide, 4 = full-width hero */
 export type WidgetSize = 1 | 2 | 3 | 4;

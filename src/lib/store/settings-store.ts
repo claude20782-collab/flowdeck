@@ -44,6 +44,7 @@ export interface AppSettings {
   defaultTimerMode: TimerMode;
   /* PWA hints */
   installHintDismissed: boolean;
+  onboardingDismissed: boolean;
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -76,6 +77,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   },
   defaultTimerMode: "pomodoro",
   installHintDismissed: false,
+  onboardingDismissed: false,
 };
 
 interface SettingsStore extends AppSettings {

@@ -51,6 +51,15 @@ export function BootGate({ children }: { children: React.ReactNode }) {
     return () => clearTimeout(t);
   }, []);
 
+  /* Hard timeout: if storage is blocked/unavailable (e.g. IDB stuck),
+   * proceed with defaults instead of hanging on the splash forever. */
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setBooted(true);
+    }, 8000);
+    return () => clearTimeout(t);
+  }, []);
+
   useEffect(() => {
     if (hydrated && minDelayDone) {
       const raf = requestAnimationFrame(() => setBooted(true));

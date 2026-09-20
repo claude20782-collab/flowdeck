@@ -58,6 +58,7 @@ export const WIDGET_LIBRARY: WidgetDef[] = [
   { type: "daily-review", label: "Daily Review", description: "Today at a glance — focus, tasks, habits", icon: ClipboardCheck, defaultSize: 2 },
   { type: "pyq", label: "PYQ Tracker", description: "Question practice log & accuracy", icon: FileQuestion, defaultSize: 2 },
   { type: "mock", label: "Mock Tests", description: "Mock test history & performance", icon: ClipboardList, defaultSize: 2 },
+  { type: "music", label: "Music", description: "Local music player with playlist — files never leave your device", icon: Music4, defaultSize: 2 },
 ];
 
 /* Lazy-loaded widget components (keeps initial bundle lean). */
@@ -81,6 +82,7 @@ export const WIDGET_COMPONENTS: Record<string, ComponentType<WidgetComponentProp
   "daily-review": dynamic(() => import("./widgets/daily-review-widget").then((m) => m.DailyReviewWidget), { ssr: false }),
   pyq: dynamic(() => import("./widgets/pyq-widget").then((m) => m.PyqWidget), { ssr: false }),
   mock: dynamic(() => import("./widgets/mock-widget").then((m) => m.MockWidget), { ssr: false }),
+  music: dynamic(() => import("./widgets/music-widget").then((m) => m.MusicWidget), { ssr: false }),
 };
 
 export function widgetDef(type: string): WidgetDef | undefined {

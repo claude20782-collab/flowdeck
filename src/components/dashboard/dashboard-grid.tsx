@@ -16,6 +16,7 @@ import { useWorkspaceStore } from "@/lib/store/workspace-store";
 import { useUIStore } from "@/lib/store/ui-store";
 import { WIDGET_COMPONENTS, WIDGET_LIBRARY, widgetDef } from "./widget-registry";
 import { SIZE_CLASS } from "./widget-card";
+import { OnboardingCard } from "./onboarding-card";
 import { cn } from "@/lib/utils";
 import { Plus, RotateCcw, Check, X, Expand } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -61,6 +62,9 @@ export function DashboardGrid() {
 
   return (
     <div className="fd-rise">
+      {/* first-run onboarding */}
+      <OnboardingCard />
+
       {/* edit toolbar */}
       {editMode && (
         <div className="widget fd-pop mb-4 flex flex-wrap items-center gap-2 px-4 py-3">
