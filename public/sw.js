@@ -6,7 +6,7 @@
  *  - never caches non-GET or external origins
  */
 
-const VERSION = "flowdeck-v2";
+const VERSION = "flowdeck-v3";
 const SHELL_CACHE = `${VERSION}-shell`;
 const ASSET_CACHE = `${VERSION}-assets`;
 const OFFLINE_URL = "/offline.html";
@@ -38,20 +38,21 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  /* static assets: cache-first */
+  /* static assets: network-first with revalidation — cache:"reload" bypasses
+   * the browser HTTP cache so dev chunk updates always land; offline falls
+   * back to the cached copy. (Prod chunks are content-hashed anyway.) */
   if (url.pathname.startsWith("/_next/static") || url.pathname.startsWith("/icons/") || url.pathname.endsWith(".svg")) {
     event.respondWith(
       (async () => {
-        const cached = await caches.match(request);
-        if (cached) return cached;
         try {
-          const res = await fetch(request);
+          const res = await fetch(request, { cache: "reload" });
           if (res.ok) {
             const cache = await caches.open(ASSET_CACHE);
             cache.put(request, res.clone());
           }
           return res;
         } catch {
+          const cached = await caches.match(request);
           return cached || Response.error();
         }
       })()

@@ -15,6 +15,8 @@ import { useSettingsStore } from "@/lib/store/settings-store";
 import { BUILT_IN_THEMES } from "@/lib/themes/presets";
 import { soundscape } from "@/lib/audio/engine";
 import { stripMarkdown } from "@/lib/markdown";
+import { todayKey } from "@/lib/utils";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
   Search,
@@ -40,6 +42,7 @@ import {
   Volume2,
   VolumeX,
   Sparkles,
+  Plus,
   Command as CommandIcon,
 } from "lucide-react";
 
@@ -50,6 +53,8 @@ interface CommandItem {
   hint?: string;
   icon: React.ReactNode;
   keywords?: string;
+  /** run without closing the palette (inline flows like quick-create) */
+  keepOpen?: boolean;
   action: () => void;
 }
 
@@ -62,6 +67,9 @@ export function CommandPalette() {
 
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
+  const [createMode, setCreateMode] = useState<null | "task" | "note">(null);
+  const [createText, setCreateText] = useState("");
+  const createInputRef = useRef<HTMLInputElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
 
@@ -99,21 +107,49 @@ export function CommandPalette() {
     if (open) {
       setQuery("");
       setActiveIndex(0);
+      setCreateMode(null);
+      setCreateText("");
       requestAnimationFrame(() => inputRef.current?.focus());
     }
   }, [open]);
 
+  /* focus the create-mode input when it appears */
+  useEffect(() => {
+    if (createMode) {
+      requestAnimationFrame(() => createInputRef.current?.focus());
+    }
+  }, [createMode]);
+
+  const submitCreate = () => {
+    const text = createText.trim();
+    if (!text || !createMode) return;
+    if (createMode === "task") {
+      useTaskStore.getState().addTask({ title: text, scheduledDate: todayKey() });
+      toast.success("Task added to today");
+    } else {
+      useNoteStore.getState().createNote({ content: text });
+      toast.success("Note created");
+    }
+    close();
+  };
+
   const close = () => setOpen(false);
 
-  const run = (fn: () => void) => {
+  const run = (fn: () => void, keepOpen = false) => {
     fn();
-    close();
+    if (!keepOpen) close();
   };
 
   const commands = useMemo<CommandItem[]>(() => {
     const items: CommandItem[] = [];
     const running = timer.status === "running";
     const paused = timer.status === "paused";
+
+    /* Quick create */
+    items.push(
+      { id: "create-task", group: "Create", label: "Add task to today…", hint: "type a title, press Enter", icon: <Plus className="h-4 w-4" />, keepOpen: true, action: () => setCreateMode("task") },
+      { id: "create-note", group: "Create", label: "Capture a note…", hint: "type content, press Enter", icon: <NotebookPen className="h-4 w-4" />, keepOpen: true, action: () => setCreateMode("note") }
+    );
 
     /* Timer */
     if (timer.status === "idle") {
@@ -291,7 +327,7 @@ export function CommandPalette() {
     } else if (e.key === "Enter") {
       e.preventDefault();
       const item = flat[activeIndex];
-      if (item) run(item.action);
+      if (item) run(item.action, item.keepOpen);
     }
   };
 
@@ -316,27 +352,74 @@ export function CommandPalette() {
         onClick={(e) => e.stopPropagation()}
       >
         {/* input */}
-        <div className="flex items-center gap-3 border-b hairline px-4 py-3.5">
-          <Search className="h-4.5 w-4.5 h-[18px] w-[18px] text-muted-c" aria-hidden="true" />
-          <input
-            ref={inputRef}
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={onKeyDown}
-            placeholder="Search commands, tasks, notes, study…"
-            aria-label="Command palette search"
-            className="min-w-0 flex-1 bg-transparent text-[15px] outline-none placeholder:text-muted-c"
-          />
-          <span
-            className="flex items-center gap-1 rounded-md border hairline px-1.5 py-0.5 text-[10px] font-medium text-muted-c"
-            aria-hidden="true"
-          >
-            <CommandIcon className="h-3 w-3" /> K
-          </span>
-        </div>
+        {!createMode && (
+          <div className="flex items-center gap-3 border-b hairline px-4 py-3.5">
+            <Search className="h-[18px] w-[18px] text-muted-c" aria-hidden="true" />
+            <input
+              ref={inputRef}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={onKeyDown}
+              placeholder="Search commands, tasks, notes, study…"
+              aria-label="Command palette search"
+              className="min-w-0 flex-1 bg-transparent text-[15px] outline-none placeholder:text-muted-c"
+            />
+            <span
+              className="flex items-center gap-1 rounded-md border hairline px-1.5 py-0.5 text-[10px] font-medium text-muted-c"
+              aria-hidden="true"
+            >
+              <CommandIcon className="h-3 w-3" /> K
+            </span>
+          </div>
+        )}
+
+        {/* create-mode composer */}
+        {createMode && (
+          <div className="border-b hairline px-4 py-3.5">
+            <div className="flex items-center gap-3">
+              {createMode === "task" ? (
+                <ListTodo className="h-[18px] w-[18px] text-accent" aria-hidden="true" />
+              ) : (
+                <NotebookPen className="h-[18px] w-[18px] text-accent" aria-hidden="true" />
+              )}
+              <input
+                ref={createInputRef}
+                value={createText}
+                onChange={(e) => setCreateText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    submitCreate();
+                  } else if (e.key === "Escape") {
+                    e.preventDefault();
+                    setCreateMode(null);
+                    setCreateText("");
+                  }
+                }}
+                placeholder={createMode === "task" ? "Task title — lands in Today…" : "Note content — markdown supported…"}
+                aria-label={createMode === "task" ? "New task title" : "New note content"}
+                className="min-w-0 flex-1 bg-transparent text-[15px] outline-none placeholder:text-muted-c"
+              />
+              <button
+                className="press flex h-8 shrink-0 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold text-[var(--accent-fg)] disabled:opacity-40"
+                style={{ background: "var(--accent)" }}
+                onClick={submitCreate}
+                disabled={!createText.trim()}
+                aria-label={createMode === "task" ? "Create task" : "Create note"}
+              >
+                <Plus className="h-3.5 w-3.5" />
+                {createMode === "task" ? "Add task" : "Save note"}
+              </button>
+            </div>
+            <p className="mt-2 pl-8 text-[11px] text-muted-c">
+              {createMode === "task" ? "Scheduled for today · Esc to cancel" : "Autosaves to Notes · Esc to cancel"}
+            </p>
+          </div>
+        )}
 
         {/* results */}
-        <div ref={listRef} className="fd-scroll max-h-[46vh] p-2" role="listbox">
+        {!createMode && (
+          <div ref={listRef} className="fd-scroll max-h-[46vh] p-2" role="listbox">
           {flat.length === 0 ? (
             <p className="py-8 text-center text-sm text-muted-c">
               No results for “{query}”
@@ -358,7 +441,7 @@ export function CommandPalette() {
                       aria-selected={active}
                       data-index={idx}
                       onMouseEnter={() => setActiveIndex(idx)}
-                      onClick={() => run(item.action)}
+                      onClick={() => run(item.action, item.keepOpen)}
                       className={cn(
                         "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors",
                         active ? "bg-[color-mix(in_srgb,var(--accent)_14%,transparent)]" : ""
@@ -379,14 +462,24 @@ export function CommandPalette() {
               </div>
             ))
           )}
-        </div>
+          </div>
+        )}
 
         {/* footer */}
         <div className="flex items-center gap-3 border-t hairline px-4 py-2 text-[10px] text-muted-c">
-          <span className="flex items-center gap-1"><kbd className="rounded border hairline px-1 py-0.5">↑↓</kbd> navigate</span>
-          <span className="flex items-center gap-1"><kbd className="rounded border hairline px-1 py-0.5">↵</kbd> run</span>
-          <span className="flex items-center gap-1"><kbd className="rounded border hairline px-1 py-0.5">esc</kbd> close</span>
-          <span className="ml-auto flex items-center gap-1"><Moon className="h-3 w-3" aria-hidden="true" /> {useSettingsStore.getState().name || "Anonymous"} mode</span>
+          {createMode ? (
+            <span className="flex items-center gap-1">
+              <kbd className="rounded border hairline px-1 py-0.5">↵</kbd> create
+              <kbd className="ml-2 rounded border hairline px-1 py-0.5">esc</kbd> back to search
+            </span>
+          ) : (
+            <>
+              <span className="flex items-center gap-1"><kbd className="rounded border hairline px-1 py-0.5">↑↓</kbd> navigate</span>
+              <span className="flex items-center gap-1"><kbd className="rounded border hairline px-1 py-0.5">↵</kbd> run</span>
+              <span className="flex items-center gap-1"><kbd className="rounded border hairline px-1 py-0.5">esc</kbd> close</span>
+              <span className="ml-auto flex items-center gap-1"><Moon className="h-3 w-3" aria-hidden="true" /> {useSettingsStore.getState().name || "Anonymous"} mode</span>
+            </>
+          )}
         </div>
       </div>
     </div>

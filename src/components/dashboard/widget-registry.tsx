@@ -24,6 +24,7 @@ import {
   ClipboardList,
   Sun,
 } from "lucide-react";
+import { WidgetSkeleton } from "./widget-skeleton";
 
 export interface WidgetComponentProps {
   widget: WidgetInstance;
@@ -63,26 +64,26 @@ export const WIDGET_LIBRARY: WidgetDef[] = [
 
 /* Lazy-loaded widget components (keeps initial bundle lean). */
 export const WIDGET_COMPONENTS: Record<string, ComponentType<WidgetComponentProps>> = {
-  greeting: dynamic(() => import("./widgets/greeting-widget").then((m) => m.GreetingWidget), { ssr: false }),
-  clock: dynamic(() => import("./widgets/clock-widget").then((m) => m.ClockWidget), { ssr: false }),
-  timer: dynamic(() => import("./widgets/timer-widget").then((m) => m.TimerWidget), { ssr: false }),
-  tasks: dynamic(() => import("./widgets/tasks-widget").then((m) => m.TasksWidget), { ssr: false }),
-  habits: dynamic(() => import("./widgets/habits-widget").then((m) => m.HabitsWidget), { ssr: false }),
-  goals: dynamic(() => import("./widgets/goals-widget").then((m) => m.GoalsWidget), { ssr: false }),
-  notes: dynamic(() => import("./widgets/notes-widget").then((m) => m.NotesWidget), { ssr: false }),
-  quote: dynamic(() => import("./widgets/quote-widget").then((m) => m.QuoteWidget), { ssr: false }),
-  calendar: dynamic(() => import("./widgets/calendar-widget").then((m) => m.CalendarWidget), { ssr: false }),
-  "focus-stats": dynamic(() => import("./widgets/focus-stats-widget").then((m) => m.FocusStatsWidget), { ssr: false }),
-  "study-progress": dynamic(() => import("./widgets/study-progress-widget").then((m) => m.StudyProgressWidget), { ssr: false }),
-  jee: dynamic(() => import("./widgets/jee-widget").then((m) => m.JeeWidget), { ssr: false }),
-  sound: dynamic(() => import("./widgets/sound-widget").then((m) => m.SoundWidget), { ssr: false }),
-  links: dynamic(() => import("./widgets/links-widget").then((m) => m.LinksWidget), { ssr: false }),
-  heatmap: dynamic(() => import("./widgets/heatmap-widget").then((m) => m.HeatmapWidget), { ssr: false }),
-  "session-history": dynamic(() => import("./widgets/session-history-widget").then((m) => m.SessionHistoryWidget), { ssr: false }),
-  "daily-review": dynamic(() => import("./widgets/daily-review-widget").then((m) => m.DailyReviewWidget), { ssr: false }),
-  pyq: dynamic(() => import("./widgets/pyq-widget").then((m) => m.PyqWidget), { ssr: false }),
-  mock: dynamic(() => import("./widgets/mock-widget").then((m) => m.MockWidget), { ssr: false }),
-  music: dynamic(() => import("./widgets/music-widget").then((m) => m.MusicWidget), { ssr: false }),
+  greeting: dynamic(() => import("./widgets/greeting-widget").then((m) => m.GreetingWidget), { ssr: false, loading: () => <WidgetSkeleton /> }),
+  clock: dynamic(() => import("./widgets/clock-widget").then((m) => m.ClockWidget), { ssr: false, loading: () => <WidgetSkeleton /> }),
+  timer: dynamic(() => import("./widgets/timer-widget").then((m) => m.TimerWidget), { ssr: false, loading: () => <WidgetSkeleton /> }),
+  tasks: dynamic(() => import("./widgets/tasks-widget").then((m) => m.TasksWidget), { ssr: false, loading: () => <WidgetSkeleton /> }),
+  habits: dynamic(() => import("./widgets/habits-widget").then((m) => m.HabitsWidget), { ssr: false, loading: () => <WidgetSkeleton /> }),
+  goals: dynamic(() => import("./widgets/goals-widget").then((m) => m.GoalsWidget), { ssr: false, loading: () => <WidgetSkeleton /> }),
+  notes: dynamic(() => import("./widgets/notes-widget").then((m) => m.NotesWidget), { ssr: false, loading: () => <WidgetSkeleton /> }),
+  quote: dynamic(() => import("./widgets/quote-widget").then((m) => m.QuoteWidget), { ssr: false, loading: () => <WidgetSkeleton /> }),
+  calendar: dynamic(() => import("./widgets/calendar-widget").then((m) => m.CalendarWidget), { ssr: false, loading: () => <WidgetSkeleton /> }),
+  "focus-stats": dynamic(() => import("./widgets/focus-stats-widget").then((m) => m.FocusStatsWidget), { ssr: false, loading: () => <WidgetSkeleton /> }),
+  "study-progress": dynamic(() => import("./widgets/study-progress-widget").then((m) => m.StudyProgressWidget), { ssr: false, loading: () => <WidgetSkeleton /> }),
+  jee: dynamic(() => import("./widgets/jee-widget").then((m) => m.JeeWidget), { ssr: false, loading: () => <WidgetSkeleton /> }),
+  sound: dynamic(() => import("./widgets/sound-widget").then((m) => m.SoundWidget), { ssr: false, loading: () => <WidgetSkeleton /> }),
+  links: dynamic(() => import("./widgets/links-widget").then((m) => m.LinksWidget), { ssr: false, loading: () => <WidgetSkeleton /> }),
+  heatmap: dynamic(() => import("./widgets/heatmap-widget").then((m) => m.HeatmapWidget), { ssr: false, loading: () => <WidgetSkeleton /> }),
+  "session-history": dynamic(() => import("./widgets/session-history-widget").then((m) => m.SessionHistoryWidget), { ssr: false, loading: () => <WidgetSkeleton /> }),
+  "daily-review": dynamic(() => import("./widgets/daily-review-widget").then((m) => m.DailyReviewWidget), { ssr: false, loading: () => <WidgetSkeleton /> }),
+  pyq: dynamic(() => import("./widgets/pyq-widget").then((m) => m.PyqWidget), { ssr: false, loading: () => <WidgetSkeleton /> }),
+  mock: dynamic(() => import("./widgets/mock-widget").then((m) => m.MockWidget), { ssr: false, loading: () => <WidgetSkeleton /> }),
+  music: dynamic(() => import("./widgets/music-widget").then((m) => m.MusicWidget), { ssr: false, loading: () => <WidgetSkeleton /> }),
 };
 
 export function widgetDef(type: string): WidgetDef | undefined {
