@@ -10,6 +10,7 @@ import { useSessionStore } from "@/lib/store/session-store";
 import { useSettingsStore } from "@/lib/store/settings-store";
 import { useNow, useCursorIdle } from "@/hooks/use-app";
 import { fmtDuration, fmtMinutes, todayKey } from "@/lib/utils";
+import { studyMinutesToday } from "@/lib/analytics";
 import { GoalRing } from "@/components/charts/goal-ring";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -24,7 +25,8 @@ import {
   Sparkles,
   Layers,
   Eye,
-  EyeOff,
+  Pin,
+  PinOff,
 } from "lucide-react";
 
 const LAYOUTS: { id: FocusLayout; label: string; icon: typeof Eye }[] = [
@@ -49,12 +51,18 @@ export function FocusOverlay() {
   const setMode = useTimerStore((s) => s.setMode);
 
   const settings = useSettingsStore((s) => s.timer);
+  const studyGoalMin = useSettingsStore((s) => s.studyGoalMin);
   const subjects = useStudyStore((s) => s.subjects);
   const chapters = useStudyStore((s) => s.chapters);
+  const studyLogs = useStudyStore((s) => s.studyLogs);
   const tasks = useTaskStore((s) => s.tasks);
   const sessions = useSessionStore((s) => s.sessions);
 
-  const [chromeVisible, setChromeVisible] = useState(true);
+  /*
+   * Immersive chrome policy: controls auto-fade after idle by DEFAULT (matching
+   * the hint text); "pinned" opts out so controls stay visible permanently.
+   */
+  const [pinned, setPinned] = useState(false);
   const cursorHidden = useCursorIdle(3500);
 
   const running = state.status === "running";
@@ -107,8 +115,16 @@ export function FocusOverlay() {
   const goalDone = goalMin > 0 && goalMinutes >= goalMin;
   const justHitGoal = goalDone && goalPct < 1.08;
 
+  /* study goal (study layout): manual logs + subject-tagged sessions, real data only */
+  const studyMinutes = useMemo(
+    () => studyMinutesToday(sessions, studyLogs),
+    [sessions, studyLogs]
+  );
+  const studyGoalDone = studyGoalMin > 0 && studyMinutes >= studyGoalMin;
+  const studyJustHit = studyGoalDone && studyMinutes / studyGoalMin < 1.08;
+
   const immersive = layout === "immersive";
-  const showChrome = chromeVisible || !cursorHidden || !immersive;
+  const showChrome = pinned || !cursorHidden || !immersive;
 
   return (
     <AnimatePresence>
@@ -291,6 +307,31 @@ export function FocusOverlay() {
               </motion.div>
             )}
 
+            {/* study goal ring (study layout only) */}
+            {studyGoalMin > 0 && layout === "study" && (
+              <motion.div
+                className="flex items-center gap-3 rounded-full px-4 py-2"
+                style={{
+                  background: studyGoalDone
+                    ? "color-mix(in srgb, var(--positive) 12%, transparent)"
+                    : "color-mix(in srgb, var(--text) 6%, transparent)"
+                }}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <GoalRing minutes={studyMinutes} goalMin={studyGoalMin} size={44} stroke={5} showLabel={false} label="Daily study goal" />
+                <div className="text-left">
+                  <div className="text-xs font-semibold" style={{ color: studyGoalDone ? "var(--positive)" : "var(--text)" }}>
+                    {studyGoalDone ? "Study goal complete" : "Daily study goal"}
+                  </div>
+                  <div className="text-[11px] tabular-nums text-muted-c">
+                    {fmtMinutes(studyMinutes)} / {fmtMinutes(studyGoalMin)}
+                    {studyJustHit ? " — nice work!" : ""}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
             {/* controls */}
             <motion.div
               className="flex items-center gap-3"
@@ -318,8 +359,12 @@ export function FocusOverlay() {
                 </>
               )}
               {immersive && (
-                <FocusBtn onClick={() => setChromeVisible((v) => !v)} aria={chromeVisible ? "Hide controls" : "Show controls"}>
-                  {chromeVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                <FocusBtn
+                  onClick={() => setPinned((v) => !v)}
+                  aria={pinned ? "Unpin controls — they will fade when idle" : "Pin controls — keep always visible"}
+                  title={pinned ? "Unpin controls" : "Pin controls"}
+                >
+                  {pinned ? <PinOff className="h-4 w-4" /> : <Pin className="h-4 w-4" />}
                 </FocusBtn>
               )}
             </motion.div>
@@ -346,11 +391,13 @@ function FocusBtn({
   onClick,
   primary,
   aria,
+  title,
 }: {
   children: React.ReactNode;
   onClick: () => void;
   primary?: boolean;
   aria: string;
+  title?: string;
 }) {
   return (
     <button
@@ -366,6 +413,7 @@ function FocusBtn({
       }
       onClick={onClick}
       aria-label={aria}
+      title={title}
     >
       {children}
     </button>

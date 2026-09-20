@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { CSSProperties, Dispatch, ReactNode, SetStateAction } from "react";
 import { toast } from "sonner";
 import {
@@ -35,7 +35,7 @@ import { useSettingsStore } from "@/lib/store/settings-store";
 import { useWorkspaceStore } from "@/lib/store/workspace-store";
 import { BUILT_IN_THEMES } from "@/lib/themes/presets";
 import { FONT_STACKS, withAlpha } from "@/lib/themes/color";
-import { RENDERER_IDS, RENDERER_LABELS } from "@/lib/backgrounds/renderers";
+import { RENDERERS, RENDERER_IDS, RENDERER_LABELS } from "@/lib/backgrounds/renderers";
 import type {
   AnimationId,
   FontChoice,
@@ -392,6 +392,63 @@ function IconBtn({
 
 /* ═══════════════════════════ TAB 1 — THEMES ═══════════════════════════ */
 
+/* ═══════════════════════════ LIVE PREVIEW CANVAS ═══════════════════════════ */
+
+/**
+ * Live ambient-animation preview for one theme card. Mounts a tiny canvas that
+ * runs the theme's real renderer (same code as the dashboard background) with the
+ * theme's own colors/intensity/speed. Only animates while hovered/focused and
+ * pauses everything when the user disabled animations or prefers reduced motion.
+ */
+function ThemePreviewCanvas({ theme }: { theme: ThemeDefinition }) {
+  const ref = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = ref.current;
+    if (!canvas) return;
+    const renderer = RENDERERS[theme.effects.animation];
+    if (!renderer) return;
+
+    const opts = {
+      intensity: theme.effects.animationIntensity,
+      speed: theme.effects.animationSpeed,
+      colors: {
+        accent: theme.colors.accent,
+        accent2: theme.colors.accent2,
+        text: theme.colors.text,
+        bg: theme.colors.bg,
+      },
+    };
+
+    /* DPR-aware backbuffer at preview size */
+    const rect = canvas.getBoundingClientRect();
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const w = Math.max(1, Math.round(rect.width));
+    const h = Math.max(1, Math.round(rect.height));
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    renderer.init(ctx, w, h, opts);
+    let raf = 0;
+    let last = performance.now();
+    const loop = (t: number) => {
+      const dt = Math.min(64, t - last);
+      last = t;
+      renderer.frame(ctx, dt, w, h, opts);
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, [theme]);
+
+  return <canvas ref={ref} className="absolute inset-0 h-full w-full" aria-hidden="true" />;
+}
+
+/* ═══════════════════════════ THEME CARD ═══════════════════════════ */
+
 function ThemeCard({
   theme,
   active,
@@ -412,6 +469,11 @@ function ThemeCard({
   const c = theme.colors;
   const surface = withAlpha(c.surface, 0.82);
   const barBorder = `1px solid ${withAlpha(c.text, 0.08)}`;
+  const animationsEnabled = useSettingsStore((s) => s.animationsEnabled);
+  const reducedMotion = useSettingsStore((s) => s.reducedMotion);
+  const [previewing, setPreviewing] = useState(false);
+  const livePreview =
+    previewing && animationsEnabled && !reducedMotion && !!RENDERERS[theme.effects.animation];
   const actions =
     onEdit || onDuplicate || onDelete || onExport ? (
       <div className="mt-1 flex items-center gap-0.5 px-0.5">
@@ -440,13 +502,19 @@ function ThemeCard({
     ) : null;
 
   return (
-    <div className="widget widget-hover p-2.5">
+    <div
+      className="widget widget-hover p-2.5"
+      onMouseEnter={() => setPreviewing(true)}
+      onMouseLeave={() => setPreviewing(false)}
+    >
       <button
         type="button"
         onClick={onActivate}
         aria-pressed={active}
         aria-label={`Activate theme ${theme.name}`}
         className="press block w-full text-left"
+        onFocus={() => setPreviewing(true)}
+        onBlur={() => setPreviewing(false)}
       >
         <span
           className="relative block aspect-[4/3] overflow-hidden rounded-xl border hairline"
@@ -456,6 +524,12 @@ function ThemeCard({
             boxShadow: active ? "0 0 0 2px var(--accent)" : undefined,
           }}
         >
+          {/* live ambient animation on hover/focus (mounts only while previewing) */}
+          {livePreview && (
+            <span className="absolute inset-0 block transition-opacity duration-300">
+              <ThemePreviewCanvas theme={theme} />
+            </span>
+          )}
           <span className="absolute inset-x-2.5 top-2.5 block">
             <span className="block h-5 rounded-md" style={{ background: surface, border: barBorder }} />
             <span className="mt-1.5 block h-3 rounded-md" style={{ background: surface, border: barBorder }} />
@@ -465,6 +539,18 @@ function ThemeCard({
             <span className="block h-2.5 w-2.5 rounded-full" style={{ background: c.accent2 }} />
             <span className="block h-1.5 w-1.5 rounded-full opacity-80" style={{ background: c.text }} />
             <span className="block h-1.5 w-1.5 rounded-full opacity-50" style={{ background: c.text }} />
+          </span>
+          {/* hover hint chip: “live” */}
+          <span
+            className="pointer-events-none absolute right-2 bottom-2 rounded-full px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider transition-opacity duration-200"
+            style={{
+              background: livePreview ? c.accent : "transparent",
+              color: c.accentFg,
+              opacity: livePreview ? 0.95 : 0,
+            }}
+            aria-hidden="true"
+          >
+            live
           </span>
           {active && (
             <span

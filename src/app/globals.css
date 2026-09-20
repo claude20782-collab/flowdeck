@@ -212,6 +212,14 @@
   -webkit-backdrop-filter: none;
 }
 
+/* Drag "lift" for the widget being sorted in edit mode */
+.widget-dragging {
+  transform: scale(1.025) rotate(0.6deg);
+  box-shadow:
+    0 18px 48px color-mix(in srgb, #000 34%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--accent) 38%, transparent) !important;
+}
+
 /* Film grain overlay for themes that want texture */
 .grain-overlay {
   position: fixed;
@@ -489,3 +497,5 @@ input[type="range"].fd-range::-moz-range-thumb {
 [data-sonner-toast] {
   border-radius: var(--app-radius) !important;
 }
+
+/* watcher-probe */

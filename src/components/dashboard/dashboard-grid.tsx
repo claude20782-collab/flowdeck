@@ -196,7 +196,15 @@ function SortableWidget({
           </div>
         </div>
       )}
-      <div className={cn("h-full", editMode && "pointer-events-none opacity-90")}>{children}</div>
+      <div
+        className={cn(
+          "h-full transition-[transform,box-shadow,opacity] duration-200 ease-out",
+          editMode && "pointer-events-none opacity-90",
+          isDragging && "widget-dragging"
+        )}
+      >
+        {children}
+      </div>
     </div>
   );
 }

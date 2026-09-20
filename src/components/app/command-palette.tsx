@@ -80,6 +80,7 @@ export function CommandPalette() {
   const timerStop = useTimerStore((s) => s.stop);
   const timerSkip = useTimerStore((s) => s.skip);
   const timerActions = { start: timerStart, pause: timerPause, resume: timerResume, stop: timerStop, skip: timerSkip };
+  const userName = useSettingsStore((s) => s.name);
   const workspaces = useWorkspaceStore((s) => s.workspaces);
   const setActiveWorkspace = useWorkspaceStore((s) => s.setActive);
   const setTheme = useAppearanceStore((s) => s.setTheme);
@@ -477,7 +478,17 @@ export function CommandPalette() {
               <span className="flex items-center gap-1"><kbd className="rounded border hairline px-1 py-0.5">↑↓</kbd> navigate</span>
               <span className="flex items-center gap-1"><kbd className="rounded border hairline px-1 py-0.5">↵</kbd> run</span>
               <span className="flex items-center gap-1"><kbd className="rounded border hairline px-1 py-0.5">esc</kbd> close</span>
-              <span className="ml-auto flex items-center gap-1"><Moon className="h-3 w-3" aria-hidden="true" /> {useSettingsStore.getState().name || "Anonymous"} mode</span>
+              {query.trim() === "" && (
+                <span className="ml-auto flex items-center gap-1.5">
+                  <Moon className="h-3 w-3" aria-hidden="true" />
+                  {userName ? `${userName} · ` : ""}local-first
+                </span>
+              )}
+              {query.trim() !== "" && (
+                <span className="ml-auto tabular-nums">
+                  {flat.length} result{flat.length === 1 ? "" : "s"}
+                </span>
+              )}
             </>
           )}
         </div>

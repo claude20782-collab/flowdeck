@@ -412,3 +412,66 @@ Task: Status assessment, agent-browser QA sweep, performance features (tasks vir
   toast when sw.js bumps, (c) habit heatmap year-view zoom (month detail), (d) notes panel virtualization
   (same FadeRail-style progressive pattern now proven in tasks), (e) focus overlay session-goal ring for
   study goal alongside focus goal, (f) audit panel-level code splitting (bundle size).
+
+---
+Task ID: QA-round-5 (lead, cron cycle)
+Agent: lead (main session)
+Task: QA sweep (focus overlay, edit mode, shortcuts) + fixes and features: immersive auto-fade pin semantics, study-goal ring in focus overlay, theme gallery live hover previews, PWA update toast (SW v5), drag-lift styling, palette footer polish
+
+## Current project status / assessment
+- App remains stable and healthy: tsc clean, eslint clean, dev.log 200s, zero console errors through
+  this round's full sweep (focus overlay all 4 layouts, edit-mode drag/resize/remove, palette, themes).
+- QA findings (all addressed this round):
+  1. UX BUG — immersive layout hint said "controls fade after inactivity" but chromeVisible defaulted
+     true, so controls NEVER faded until the user clicked "Hide controls" (contradiction). FIXED.
+  2. Command palette footer said "🌙 Anonymous mode" (nonsense wording). FIXED.
+- Tooling notes for future agents:
+  - React 19 does NOT fire onMouseEnter from a dispatched 'mouseenter' MouseEvent — use real
+    `agent-browser hover` (CDP) or dispatch 'mouseover'; onFocus needs 'focusin'.
+  - Dev-server CSS staleness STILL BITES: after editing globals.css externally, the compiled CSS may
+    not include new rules even after reload + cache:reload + SW unregister. Fix that worked: append a
+    marker comment to globals.css (triggers Turbopack recompile), reload, verify via fetch of the
+    stylesheet href. (`touch` alone was NOT enough; appending content was.)
+  - VLM sometimes hallucinates HTML mockups when asked "does X look right" — constrain prompts to
+    short yes/no questions about the IMAGE only.
+
+## Goals / completed modifications / verification results (this round)
+1. FIX — immersive auto-fade now matches the hint: state renamed chromeVisible→pinned (default false),
+   showChrome = pinned || !cursorHidden || !immersive. Eye toggle → Pin/PinOff icon buttons with
+   precise aria ("Pin controls — keep always visible" / "Unpin controls — they will fade when idle").
+   Verified live: enter immersive → chrome opacity 0 after 3.5s idle → pointermove brings it back
+   (0.80 mid-transition) → idle hides again → Pin keeps opacity 1 through idle, Unpin restores fade.
+   FocusBtn now accepts a `title` prop (native tooltip).
+2. FEATURE — study-goal ring in focus overlay Study layout: second goal pill next to the focus ring
+   ("Daily study goal", 1h 15m / 4h live-verified from the imported study log), positive-color +
+   "Study goal complete" state, useMemo'd studyMinutesToday from real data (logs + tagged sessions).
+   VLM-verified rendering; both rings co-exist without overlap.
+3. FEATURE — theme gallery live hover previews: new ThemePreviewCanvas mounts a DPR-aware mini canvas
+   running the theme's REAL renderer (same RENDERERS map as the dashboard background) with the
+   theme's own colors/intensity/speed — only while hovered/focused, gated on animationsEnabled +
+   !reducedMotion, unmounts on leave (verified canvas 0→1→0). "live" badge chip fades in on the card.
+   VLM-verified on Aurora: animated canvas + LIVE chip visible.
+4. FEATURE — PWA update-available toast: pwa-register.tsx now handles waiting-worker at load +
+   updatefound→installed transitions with a one-tap Reload sonner toast (12s duration, shown once),
+   plus hourly reg.update() polling with pagehide cleanup. SW bumped to v5 (old caches auto-purged —
+   verified: only flowdeck-v5-* remain). Toast verified END-TO-END: fired on the live page during
+   QA (VLM saw it partially covering controls; it self-dismissed after 12s as designed).
+5. POLISH — drag "lift" in edit mode: .widget-dragging (scale 1.025 + rotate 0.6deg + deep shadow +
+   accent ring, !important shadow) applied to the inner widget wrapper while isDragging; verified
+   mid-drag via computed style matrix(1.02494, 0.0107, …) + boxShadow set, and VLM confirmed the
+   Soundscape card visibly raised. NOTE: rule initially not served due to CSS staleness (see above).
+6. POLISH — command palette footer: replaced "Anonymous mode" with "{name} · local-first" (empty
+   query) / live "N results" count while searching (verified "29 results" for 'theme').
+7. Full verification: tsc clean, eslint clean, mobile 390px no overflow (8/10 VLM), desktop 9/10 VLM,
+   zero console errors.
+
+## Unresolved issues / risks / next-phase priorities
+- LOW: sound-widget channel icons are 16px — VLM found them "slightly small" vs labels (design
+  choice; could bump to 18px if it recurs).
+- LOW: SW update toast may cover focus-overlay controls briefly on slow devices (auto-dismiss 12s;
+  acceptable — but could position toasts bottom-left in immersive mode if users complain).
+- MEDIUM: dev-server CSS staleness after external edits (see tooling notes; marker-append workaround).
+- NEXT (suggested): (a) notes panel virtualization (reuse the proven tasks-panel windowing pattern),
+  (b) habit heatmap year-view zoom, (c) panel-level code-splitting audit (bundle size), (d) PWA
+  install-prompt A/B copy, (e) theme gallery keyboard-focus preview tour (arrow-key gallery nav),
+  (f) session-tag autocomplete from recent labels in timer widget.
