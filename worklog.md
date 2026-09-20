@@ -289,3 +289,69 @@ Task: Bug-fix round — wallpaper rendering, SW staleness; features — palette 
   tasks, (c) habit heatmap year view, (d) study calendar (planned vs actual), (e) theme gallery hover previews with
   live animation, (f) export/import e2e test with fresh browser profile, (g) reduce initial JS via panel-level
   code-splitting audit.
+
+---
+Task ID: QA-round-3 (lead, cron cycle)
+Agent: lead (main session)
+Task: Status assessment, agent-browser QA sweep, bug fixes + new features + styling polish round
+
+## Current project status / assessment
+- Flowdeck remains functionally complete and stable: 20 widgets, 9 panels, timestamp timer engine,
+  28+custom themes, JEE study system, analytics, PWA, backup import/export. Zero page/console
+  errors in fresh browser sessions; lint + tsc (src) clean throughout this round.
+- QA sweep (agent-browser + VLM on screenshots): desktop 1280px + mobile 390px; all panels open,
+  scroll and render CLEAN (habits/goals/notes/settings/study 9-10/10; analytics 10/10 mobile).
+  Timer start/tick/pause/stop verified; sound presets toggle; workspace switching persists.
+- Tooling discovery (IMPORTANT for future agents): the Bash tool output rendering EATS the
+  literal sequence `[m` (ANSI-reset artifact). E.g. `const [minutes, setMinutes]` displays as
+  `const inutes, setMinutes]` and grep/od/sed results are similarly mangled in the rendered
+  output. Verify suspicious "syntax errors" with the Read tool or `node -e` + JSON.stringify
+  before treating them as real bugs. Wasted time this round chasing a phantom syntax error.
+- Dev-server staleness: after heavy external edits, a stale SERVICE WORKER (flowdeck-v3 cache)
+  kept serving old CSS even after dev-server restart + .next wipe. Fix: unregister SW +
+  caches.delete in the page, then hard reload. SW bumped to v4 to invalidate installed caches.
+
+## Goals / completed modifications / verification results (this round)
+1. NEW FEATURE — Daily focus goal (settings: Timer ▸ "Daily focus goal" stepper, Off..10h,
+   "2h 15m" formatting): GoalRing (SVG arc + glow + over-goal second ring) in focus overlay
+   standard/study layouts; compact GoalBar in timer widget. Counts completed sessions +
+   LIVE focus-phase time of the running session (verified live: 0m → 1m of 2h while running).
+   Files: charts/goal-ring.tsx (new), timer-widget, focus-overlay, settings-panel, settings-store
+   (+dailyGoalMin), analytics.ts (+focusMinutesToday).
+2. NEW FEATURE — Habits "Consistency" 12-month GitHub-style heatmap in habits panel:
+   53 week columns aligned to weekStart setting, month labels, M/W/F weekday labels,
+   intensity legend, per-cell tooltips + hover scale, future dates dimmed, aggregate
+   completions + active-days stats in header. VLM-verified rendering.
+3. NEW FEATURE — Study calendar in Study ▸ Study Log tab: month grid of per-day study minutes
+   (manual logs + subject-tagged sessions), accent-intensity shading with per-month max
+   normalization, today ring, prev/next/Today nav, month total + active days in header.
+   Verified end-to-end: logged 90 min → today's cell shaded, aria-label "1h 30m of study".
+4. BUG FIX — settings persist migration: old persisted snapshots wholesale-replaced the
+   `timer` object, dropping newly added keys (dailyGoalMin undefined → goal UI missing).
+   Added deepMergePersisted (config.ts) + custom `merge` in settings-store. Verified: goal
+   UI now appears for pre-existing profiles.
+5. BUG FIX (mobile UX) — onboarding card showed Ctrl+K keyboard hints on touch devices;
+   now uses usePlatform (pointer:coarse / hover:none / maxTouchPoints) → touch devices get
+   "Everything lives in the bottom bar…" hint instead; ⌘/Ctrl label is platform-aware.
+   Notes widget/panel save hints likewise platform-aware (⌘↵ vs Ctrl+↵).
+6. POLISH — calendar day hover scale+press feedback; quick-add task/note inputs get
+   hover border + focus fill; mask-based right-edge fade (`fade-r` class) on horizontal
+   chip rails (sound presets, sound panel, mobile settings tabs) signalling scrollability;
+   goal formats unified ("2h 15m").
+7. COMMITTED + PUSHED: 3830057 on main (19 files, +608/−24). Remote URL scrubbed of PAT.
+
+## Unresolved issues / risks / next-phase priorities
+- LOW: fade-r mask is static (also fades when rail is not scrollable on wide screens) —
+  harmless today (rail right-edge is empty space); a JS scroll-listener could toggle
+  data-fade dynamically if it ever bothers.
+- LOW: goal ring counts only focus sessions (not study logs) — intentional ("focus goal");
+  consider a separate study-hours goal in Settings ▸ Study if requested.
+- MEDIUM: sw.js version must be bumped whenever public assets change semantics for
+  installed PWAs (currently v4).
+- Tooling notes for next agents: Bash output strips literal `[m`; SW unregister may be needed
+  to see fresh static assets in dev; agent-browser `set viewport W H` for responsive tests,
+  `press Escape` (real key) to close panels — synthetic KeyboardEvent dispatches do NOT
+  close panels.
+- NEXT (suggested): (a) tasks panel virtualization for 500+ tasks, (b) theme gallery live
+  hover previews, (c) export/import e2e with fresh profile, (d) panel-level code-splitting
+  audit, (e) optional study-hours goal, (f) dynamic fade toggle for chip rails.
