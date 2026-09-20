@@ -40,6 +40,8 @@ export interface AppSettings {
   /* general */
   weekStart: 0 | 1;
   name: string;
+  /* study */
+  studyGoalMin: number; // daily study target in minutes (0 = off)
   /* timer */
   timer: TimerSettings;
   defaultTimerMode: TimerMode;
@@ -63,6 +65,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   tasksShowCompleted: false,
   weekStart: 1,
   name: "",
+  studyGoalMin: 240,
   timer: {
     focusMin: 25,
     shortMin: 5,

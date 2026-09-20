@@ -14,6 +14,7 @@ export function GoalRing({
   size = 84,
   stroke = 7,
   showLabel = true,
+  label = "Daily focus goal",
   className,
 }: {
   minutes: number;
@@ -21,6 +22,7 @@ export function GoalRing({
   size?: number;
   stroke?: number;
   showLabel?: boolean;
+  label?: string;
   className?: string;
 }) {
   const pct = goalMin > 0 ? Math.min(1.999, minutes / goalMin) : 0;
@@ -55,7 +57,7 @@ export function GoalRing({
       aria-valuenow={Math.round(minutes)}
       aria-valuemin={0}
       aria-valuemax={goalMin}
-      aria-label={`Daily focus goal: ${fmt(minutes)} of ${fmt(goalMin)}`}
+      aria-label={`${label}: ${fmt(minutes)} of ${fmt(goalMin)}`}
     >
       <svg width={size} height={size} className="-rotate-90" aria-hidden="true">
         <circle
@@ -116,10 +118,12 @@ export function GoalRing({
 export function GoalBar({
   minutes,
   goalMin,
+  label = "Daily focus goal",
   className,
 }: {
   minutes: number;
   goalMin: number;
+  label?: string;
   className?: string;
 }) {
   const pct = goalMin > 0 ? Math.min(100, (minutes / goalMin) * 100) : 0;
@@ -137,12 +141,12 @@ export function GoalBar({
   return (
     <div
       className={`flex items-center gap-2 ${className ?? ""}`}
-      title={`Daily goal — ${fmt(minutes)} of ${fmt(goalMin)}`}
+      title={`${label} — ${fmt(minutes)} of ${fmt(goalMin)}`}
       role="progressbar"
       aria-valuenow={Math.round(minutes)}
       aria-valuemin={0}
       aria-valuemax={goalMin}
-      aria-label={`Daily focus goal: ${fmt(minutes)} of ${fmt(goalMin)}`}
+      aria-label={`${label}: ${fmt(minutes)} of ${fmt(goalMin)}`}
     >
       <div className="h-1.5 flex-1 overflow-hidden rounded-full" style={{ background: "color-mix(in srgb, var(--text) 10%, transparent)" }}>
         <motion.div

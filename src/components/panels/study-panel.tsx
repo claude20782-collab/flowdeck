@@ -49,6 +49,8 @@ import { useSessionStore } from "@/lib/store/session-store";
 import { useSettingsStore } from "@/lib/store/settings-store";
 import { cn, dateKey, daysAgoKey, fmtMinutes, todayKey } from "@/lib/utils";
 import { HBarChart, LineChart, ProgressRing } from "@/components/charts/primitives";
+import { GoalRing } from "@/components/charts/goal-ring";
+import { studyMinutesToday } from "@/lib/analytics";
 import type {
   Chapter,
   ChapterStatus,
@@ -1789,6 +1791,8 @@ function LogTab() {
   const addStudyLog = useStudyStore((s) => s.addStudyLog);
   const deleteStudyLog = useStudyStore((s) => s.deleteStudyLog);
   const sessions = useSessionStore((s) => s.sessions);
+  const studyGoalMin = useSettingsStore((s) => s.studyGoalMin);
+  const updateSettings = useSettingsStore((s) => s.update);
 
   const activeSubjects = useMemo(() => subjects.filter((s) => !s.archived), [subjects]);
 
@@ -1920,8 +1924,54 @@ function LogTab() {
     [calCells, minutesByDate]
   );
 
+  /* daily study goal: manual logs + subject-tagged sessions today (real data only) */
+  const todayStudyMin = useMemo(
+    () => studyMinutesToday(sessions, studyLogs),
+    [sessions, studyLogs]
+  );
+  const adjustGoal = (delta: number) => {
+    const next = Math.min(780, Math.max(0, studyGoalMin + delta));
+    updateSettings({ studyGoalMin: next });
+  };
+
   return (
     <div>
+      {/* daily study goal strip */}
+      {studyGoalMin > 0 && (
+        <div className="widget mb-4 flex items-center gap-4 p-4">
+          <GoalRing minutes={todayStudyMin} goalMin={studyGoalMin} size={64} stroke={6} label="Daily study goal" />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold">Today's study goal</p>
+            <p className="mt-0.5 text-xs leading-relaxed text-muted-c">
+              {todayStudyMin >= studyGoalMin
+                ? `Goal met — ${fmtMinutes(todayStudyMin)} logged today. Every extra minute compounds.`
+                : `${fmtMinutes(studyGoalMin - todayStudyMin)} to go. Manual logs and subject-tagged focus sessions both count.`}
+            </p>
+            <div className="mt-2 flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => adjustGoal(-30)}
+                disabled={studyGoalMin <= 30}
+                aria-label="Decrease daily study goal by 30 minutes"
+                className="press flex h-7 w-7 items-center justify-center rounded-lg text-muted-c transition-colors hover:text-[var(--text)] disabled:opacity-40"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <span className="min-w-14 text-center text-xs font-semibold tabular-nums">{fmtMinutes(studyGoalMin)}</span>
+              <button
+                type="button"
+                onClick={() => adjustGoal(30)}
+                disabled={studyGoalMin >= 780}
+                aria-label="Increase daily study goal by 30 minutes"
+                className="press flex h-7 w-7 items-center justify-center rounded-lg text-muted-c transition-colors hover:text-[var(--text)] disabled:opacity-40"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* add manual study time */}
       <div className="widget mb-4 p-4">
         <PanelSection>Add manual study time</PanelSection>

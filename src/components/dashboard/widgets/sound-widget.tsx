@@ -1,6 +1,7 @@
 "use client";
 
 import { WidgetCard } from "../widget-card";
+import { FadeRail } from "@/components/fade-rail";
 import { useSoundStore, SOUND_IDS, BUILTIN_PRESETS, type SoundId } from "@/lib/store/sound-store";
 import { useUIStore } from "@/lib/store/ui-store";
 import { soundscape } from "@/lib/audio/engine";
@@ -105,7 +106,7 @@ export function SoundWidget() {
       </div>
 
       {/* presets */}
-      <div className="fade-r no-scrollbar -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-0.5" role="group" aria-label="Sound presets">
+      <FadeRail className="-mx-1 flex gap-1.5 px-1 pb-0.5" role="group" aria-label="Sound presets">
         {BUILTIN_PRESETS.map((p) => (
           <button
             key={p.id}
@@ -127,7 +128,7 @@ export function SoundWidget() {
             {p.name}
           </button>
         ))}
-      </div>
+      </FadeRail>
 
       {/* compact channel quick-toggles */}
       <div className="mt-3 grid grid-cols-4 gap-1.5 sm:grid-cols-6">

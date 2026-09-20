@@ -7,7 +7,7 @@ import { useSessionStore } from "@/lib/store/session-store";
 import { useUIStore } from "@/lib/store/ui-store";
 import { useTimerStore } from "@/lib/store/timer-store";
 import { isTouchDevice, modKeyLabel } from "@/lib/utils";
-import { Sparkles, X, Check, Palette, Timer, Keyboard, Command } from "lucide-react";
+import { Sparkles, X, Check, Palette, Timer, UserRound, Keyboard, Command } from "lucide-react";
 
 /** Platform detection with lazy init — safe: OnboardingCard only renders
  *  client-side after BootGate (all stores hydrated). */
@@ -97,11 +97,9 @@ export function OnboardingCard() {
               {hasName ? (
                 <Check className="h-3.5 w-3.5" style={{ color: "var(--positive)" }} aria-hidden="true" />
               ) : (
-                <span className="flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold" style={{ background: "var(--accent)", color: "var(--accent-fg)" }}>
-                  1
-                </span>
+                <UserRound className="h-3.5 w-3.5 text-accent" aria-hidden="true" />
               )}
-              {hasName ? `Hi, ${name}` : "What should we call you?"}
+              {hasName ? `Hi, ${name}` : "1 · What should we call you?"}
             </div>
             {!hasName && (
               <div className="flex gap-1.5">
@@ -112,7 +110,8 @@ export function OnboardingCard() {
                   placeholder="Your name"
                   aria-label="Your name"
                   maxLength={24}
-                  className="h-8 min-w-0 flex-1 rounded-lg border hairline bg-transparent px-2.5 text-sm outline-none focus:border-[color-mix(in_srgb,var(--accent)_50%,transparent)] placeholder:text-muted-c"
+                  className="h-8 min-w-0 flex-1 rounded-lg border hairline px-2.5 text-sm outline-none focus:border-[color-mix(in_srgb,var(--accent)_50%,transparent)] placeholder:text-muted-c"
+                  style={{ background: "color-mix(in srgb, var(--text) 4%, transparent)" }}
                 />
                 <button
                   className="press h-8 shrink-0 rounded-lg px-3 text-xs font-semibold text-[var(--accent-fg)] disabled:opacity-40"

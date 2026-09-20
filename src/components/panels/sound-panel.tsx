@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { PanelActionButton, PanelSection, PanelShell } from "./panel-shell";
+import { FadeRail } from "@/components/fade-rail";
 import {
   useSoundStore,
   SOUND_IDS,
@@ -318,8 +319,8 @@ export function SoundPanel() {
     >
       {/* presets */}
       <PanelSection>Presets</PanelSection>
-      <div
-        className="fade-r no-scrollbar -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1"
+      <FadeRail
+        className="-mx-1 flex gap-1.5 px-1 pb-1"
         role="group"
         aria-label="Sound presets"
       >
@@ -353,7 +354,7 @@ export function SoundPanel() {
           <Plus className="h-3 w-3" aria-hidden="true" />
           Save mix as preset
         </button>
-      </div>
+      </FadeRail>
 
       {/* empty-ish hint */}
       {activeCount === 0 && (

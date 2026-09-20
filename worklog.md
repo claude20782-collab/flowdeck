@@ -355,3 +355,60 @@ Task: Status assessment, agent-browser QA sweep, bug fixes + new features + styl
 - NEXT (suggested): (a) tasks panel virtualization for 500+ tasks, (b) theme gallery live
   hover previews, (c) export/import e2e with fresh profile, (d) panel-level code-splitting
   audit, (e) optional study-hours goal, (f) dynamic fade toggle for chip rails.
+
+---
+Task ID: QA-round-4 (lead, cron cycle)
+Agent: lead (main session)
+Task: Status assessment, agent-browser QA sweep, performance features (tasks virtualization, study goal), polish (dynamic fade rails, widget icon chips, glass-edge hover)
+
+## Current project status / assessment
+- Flowdeck fully functional: 20 widgets, 9 panels, timestamp timer engine (reload-surviving, verified again
+  this round: start → tick → pause → reload → frozen at 24:48), 28 themes (Sakura switch verified live incl.
+  IndexedDB persistence + CSS var repaint), PWA, backup import/export (FULL e2e round-trip verified this round).
+- QA sweep (agent-browser + VLM): desktop 1280 + mobile 390 across all panels — Tasks 10/10, Study 9/10,
+  Habits/Goals/Notes 9/10, Themes 8/10, dashboard 8.5/10, mobile 8/10. Zero console errors throughout.
+- Tooling notes: Radix DropdownMenu opens via keyboard (focus + Enter) — synthetic .click() on the trigger
+  does NOT open it. Erase-everything requires typing "ERASE" (clicking the disabled confirm is a silent no-op —
+  that's the safety pattern, not a bug). VLM can misread the onboarding step-1 numbered badge as a "warning icon"
+  (now replaced with a UserRound icon for consistency). Export downloads use Blob+URL.createObjectURL — capture
+  via hooking URL.createObjectURL in eval; the `download` CLI command times out on programmatic downloads.
+
+## Goals / completed modifications / verification results (this round)
+1. FEATURE — Tasks panel progressive rendering (500+ tasks): chunked window (RENDER_CHUNK=40) with
+   render-adjust epoch pattern (view|deferredQuery|prio|tag|sort → window resets lazily, no setState-in-effect),
+   IntersectionObserver sentinel (600px rootMargin) auto-extends, explicit "Show all N" button, scheduled-view
+   group capping, "Showing X of Y" hint, useDeferredValue on the search query. Verified with 520 injected tasks:
+   40/445 rendered initially → auto-extend to 80 on scroll → Show all renders 445 → search resets window to 40.
+   tsc + eslint clean.
+2. FEATURE — Daily study goal (mirrors focus goal): settings.studyGoalMin (default 240, deepMergePersisted
+   migration verified on pre-existing profile), studyMinutesToday() in analytics (manual logs + subject-tagged
+   sessions, real data only), "Daily study goal" stepper in Settings ▸ Timer, GoalRing strip with inline ±30min
+   adjuster at top of Study ▸ Study Log, GoalBar in the study-progress widget. GoalRing/GoalBar gained an
+   optional `label` prop (aria/title). Verified live: logged 75min → ring "1h of 4h" + "3h to go", goal persisted
+   240→270→240, widget bar "60m of 4h".
+3. POLISH — Dynamic fade rails: new <FadeRail/> (src/components/fade-rail.tsx) replaces static .fade-rail
+   divs in sound-widget, sound-panel, settings-panel mobile tabs. data-fade=start|mid|end set via direct DOM
+   sync (no React state — scroll never re-renders); CSS: right fade at start, both-edge fade mid-scroll, no
+   fade at end/not-scrollable. Verified live: end (not scrollable) → start (overflow 257px) → mid (scrolled).
+4. POLISH — styling details: widget header icons now sit in accent-tinted 6x6 chips (all 20 widgets),
+   .widget-hover::before glass-edge gradient highlight on hover, .display-time subtle accent glow,
+   greeting widget time-of-day icon (Sunrise/Sun/Sunset/Moon), onboarding step-1 UserRound icon (replaced
+   numbered badge VLM misread) + input bg tint.
+5. QA — export/import e2e round-trip VERIFIED: export (12 keys, 11KB) → capture blob → stash in
+   localStorage (erase reloads the page, killing window state!) → erase with typed ERASE (data wiped,
+   starter subjects re-seeded by design) → import via DataTransfer File → confirm → 75-min study log +
+   studyGoalMin restored. Erase+import flows are bug-free.
+6. All changes: tsc clean (src), eslint clean (bun run lint), dev.log 200s only, fresh browser session
+   errors: none.
+
+## Unresolved issues / risks / next-phase priorities
+- LOW: dev.log shows transient "Fast Refresh full reload (runtime error)" lines when editing files while the
+  browser page holds eval-mutated state — artifacts of the test workflow, not app bugs.
+- LOW: seconds in clock are intentionally smaller/lighter (VLM noted "imbalance" — design choice, keep).
+- LOW: goal ring counts only completed focus sessions + live focus phase; study goal counts manual logs +
+  subject-tagged sessions (both intentional semantics, documented in aria labels).
+- MEDIUM: sw.js is still v4 — bump whenever public asset semantics change for installed PWAs.
+- NEXT (suggested): (a) theme gallery live hover previews with mini animation, (b) PWA update-available
+  toast when sw.js bumps, (c) habit heatmap year-view zoom (month detail), (d) notes panel virtualization
+  (same FadeRail-style progressive pattern now proven in tasks), (e) focus overlay session-goal ring for
+  study goal alongside focus goal, (f) audit panel-level code splitting (bundle size).

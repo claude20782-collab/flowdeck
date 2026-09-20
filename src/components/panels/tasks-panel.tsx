@@ -8,7 +8,7 @@
  * header toggle), manual reorder, confirm-guarded destructive ops.
  * ============================================================ */
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
 import {
@@ -67,6 +67,9 @@ const RECUR_OPTIONS: { value: string; label: string }[] = [
   { value: "weekly", label: "Weekly" }, { value: "monthly", label: "Monthly" },
 ];
 const FILTER_PRIORITIES: PrioFilter[] = ["all", "urgent", "high", "medium", "low", "none"];
+
+/** Progressive rendering: rows painted per chunk (auto-extended on scroll). */
+const RENDER_CHUNK = 40;
 
 const INPUT_CLS =
   "h-9 w-full rounded-lg border hairline bg-transparent px-3 text-sm outline-none transition-colors focus:border-[color-mix(in_srgb,var(--accent)_50%,transparent)] placeholder:text-muted-c";
@@ -703,11 +706,31 @@ export function TasksPanel() {
   const [prioFilter, setPrioFilter] = useState<PrioFilter>("all");
   const [tagFilter, setTagFilter] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  /* Progressive window: keep typing/filter-switching snappy with 500+ tasks. */
+  const deferredQuery = useDeferredValue(query);
   const [composerOpen, setComposerOpen] = useState(false);
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [burstId, setBurstId] = useState<string | null>(null);
   const [pending, setPending] = useState<PendingAction>(null);
+
+  /*
+   * Progressive render window (render-adjust pattern, no set-state-in-effect):
+   * `epoch` captures every input that re-orders the list; when it changes the
+   * stale limit is ignored on the next render and the window resets lazily.
+   */
+  const listEpoch = `${view}|${deferredQuery}|${prioFilter}|${tagFilter ?? ""}|${tasksSort}`;
+  const [windowState, setWindowState] = useState({ epoch: listEpoch, limit: RENDER_CHUNK });
+  const limit = windowState.epoch === listEpoch ? windowState.limit : RENDER_CHUNK;
+  const growWindow = useCallback(() => {
+    setWindowState((cur) =>
+      cur.epoch === listEpoch
+        ? { epoch: cur.epoch, limit: cur.limit + RENDER_CHUNK }
+        : { epoch: listEpoch, limit: RENDER_CHUNK * 2 });
+  }, [listEpoch]);
+  const showAll = useCallback(() => {
+    setWindowState({ epoch: listEpoch, limit: Number.MAX_SAFE_INTEGER });
+  }, [listEpoch]);
 
   const today = todayKey();
   const burstTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -737,7 +760,7 @@ export function TasksPanel() {
   const viewTasks = useMemo(() => tasks.filter((t) => inView(t, view, today)), [tasks, view, today]);
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
+    const q = deferredQuery.trim().toLowerCase();
     const list = viewTasks.filter(
       (t) =>
         matchesSearch(t, q) &&
@@ -750,7 +773,7 @@ export function TasksPanel() {
       return [...list].sort((a, b) => (a.scheduledDate ?? "").localeCompare(b.scheduledDate ?? "") || cmp(a, b));
     }
     return [...list].sort(cmp);
-  }, [viewTasks, query, prioFilter, tagFilter, view, tasksSort]);
+  }, [viewTasks, deferredQuery, prioFilter, tagFilter, view, tasksSort]);
 
   const scheduledGroups = useMemo(() => {
     if (view !== "scheduled") return [] as [string, Task[]][];
@@ -763,6 +786,37 @@ export function TasksPanel() {
     }
     return [...map.entries()];
   }, [view, filtered]);
+
+  /* Windowed slices: the first `limit` rows across the flat list / groups. */
+  const visibleFlat = useMemo(() => filtered.slice(0, limit), [filtered, limit]);
+  const visibleGroups = useMemo(() => {
+    if (view !== "scheduled") return [] as [string, Task[]][];
+    let remaining = limit;
+    const out: [string, Task[]][] = [];
+    for (const [date, items] of scheduledGroups) {
+      if (remaining <= 0) break;
+      out.push([date, remaining < items.length ? items.slice(0, remaining) : items]);
+      remaining -= items.length;
+    }
+    return out;
+  }, [view, scheduledGroups, limit]);
+  const visibleCount = view === "scheduled"
+    ? visibleGroups.reduce((n, [, items]) => n + items.length, 0)
+    : visibleFlat.length;
+  const truncated = filtered.length > visibleCount;
+
+  /* Auto-extend the window as the sentinel nears the viewport. */
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el || !truncated) return;
+    const io = new IntersectionObserver(
+      (entries) => { if (entries[0]?.isIntersecting) growWindow(); },
+      { rootMargin: "600px 0px" }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [growWindow, truncated, limit, view]);
 
   const showMove = (view === "inbox" || view === "today") && tasksSort === "manual";
 
@@ -920,7 +974,7 @@ export function TasksPanel() {
         )
       ) : view === "scheduled" ? (
         <div className="space-y-5">
-          {scheduledGroups.map(([date, items]) => (
+          {visibleGroups.map(([date, items]) => (
             <section key={date}>
               <PanelSection action={<span className="text-[10px] font-semibold tabular-nums text-muted-c">{items.length}</span>}>
                 {date < today ? <span style={{ color: "var(--negative)" }}>{humanDate(date)}</span> : humanDate(date)}
@@ -930,7 +984,20 @@ export function TasksPanel() {
           ))}
         </div>
       ) : (
-        <ul className="space-y-1">{filtered.map((t, i) => renderRow(t, i, filtered))}</ul>
+        <ul className="space-y-1">{visibleFlat.map((t, i) => renderRow(t, i, filtered))}</ul>
+      )}
+
+      {/* Progressive-render sentinel + explicit controls for very large lists. */}
+      {truncated && !isEmpty && (
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+          <div ref={sentinelRef} aria-hidden="true" className="h-px w-full" />
+          <p className="text-[11px] font-medium tabular-nums text-muted-c">
+            Showing {visibleCount} of {filtered.length} — keep scrolling to load more
+          </p>
+          <PanelActionButton variant="ghost" onClick={showAll} label="Render every task in this view">
+            Show all {filtered.length}
+          </PanelActionButton>
+        </div>
       )}
 
       <ConfirmDialog pending={pending} selectedCount={selected.size}

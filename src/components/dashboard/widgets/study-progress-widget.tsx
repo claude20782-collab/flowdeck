@@ -4,15 +4,20 @@ import { useMemo } from "react";
 import { WidgetCard } from "../widget-card";
 import { useStudyStore, subjectStats } from "@/lib/store/study-store";
 import { useSessionStore } from "@/lib/store/session-store";
+import { useSettingsStore } from "@/lib/store/settings-store";
 import { useUIStore } from "@/lib/store/ui-store";
+import { studyMinutesToday } from "@/lib/analytics";
 import { ProgressRing } from "@/components/charts/primitives";
+import { GoalBar } from "@/components/charts/goal-ring";
 import { GraduationCap, ChevronRight } from "lucide-react";
 
 export function StudyProgressWidget() {
   const subjects = useStudyStore((s) => s.subjects);
   const chapters = useStudyStore((s) => s.chapters);
   const pyq = useStudyStore((s) => s.pyq);
+  const studyLogs = useStudyStore((s) => s.studyLogs);
   const sessions = useSessionStore((s) => s.sessions);
+  const studyGoalMin = useSettingsStore((s) => s.studyGoalMin);
   const openPanel = useUIStore((s) => s.openPanel);
 
   const perSubject = useMemo(
@@ -36,6 +41,10 @@ export function StudyProgressWidget() {
     sessions
       .filter((s) => s.subjectId && s.startedAt > Date.now() - 7 * 86400_000)
       .reduce((m, s) => m + s.durationMs, 0) / 60000
+  );
+  const todayStudyMin = useMemo(
+    () => studyMinutesToday(sessions, studyLogs),
+    [sessions, studyLogs]
   );
 
   return (
@@ -109,13 +118,20 @@ export function StudyProgressWidget() {
                   </span>
                 </div>
               ))}
-              <div className="pt-1 text-[11px] text-muted-c">
-                {weekMinutes > 0 ? (
-                  <>
-                    <span className="font-semibold text-accent">{weekMinutes >= 60 ? `${Math.round(weekMinutes / 60)}h` : `${weekMinutes}m`}</span> studied this week
-                  </>
-                ) : (
-                  "No tagged study time this week"
+              <div className="pt-1">
+                <div className="text-[11px] text-muted-c">
+                  {weekMinutes > 0 ? (
+                    <>
+                      <span className="font-semibold text-accent">{weekMinutes >= 60 ? `${Math.round(weekMinutes / 60)}h` : `${weekMinutes}m`}</span> studied this week
+                    </>
+                  ) : (
+                    "No tagged study time this week"
+                  )}
+                </div>
+                {studyGoalMin > 0 && (
+                  <div className="mt-1.5">
+                    <GoalBar minutes={todayStudyMin} goalMin={studyGoalMin} label="Daily study goal" />
+                  </div>
                 )}
               </div>
             </div>

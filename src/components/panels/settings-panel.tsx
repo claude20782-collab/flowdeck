@@ -41,6 +41,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { PanelActionButton, PanelSection, PanelShell } from "./panel-shell";
+import { FadeRail } from "@/components/fade-rail";
 import { Switch } from "@/components/ui/switch";
 import { resolveTheme, useAppearanceStore } from "@/lib/store/appearance-store";
 import { useSettingsStore } from "@/lib/store/settings-store";
@@ -726,6 +727,23 @@ function TimerSection() {
                   : `${v} min`
           }
           onChange={(v) => updateTimer({ dailyGoalMin: v })}
+        />
+        <Stepper
+          label="Daily study goal"
+          value={settings.studyGoalMin}
+          min={0}
+          max={780}
+          step={30}
+          format={(v) =>
+            v === 0
+              ? "Off"
+              : v % 60 === 0
+                ? `${v / 60}h`
+                : v >= 60
+                  ? `${Math.floor(v / 60)}h ${v % 60}m`
+                  : `${v} min`
+          }
+          onChange={(v) => update({ studyGoalMin: v })}
         />
       </SettingCard>
 
@@ -1476,7 +1494,7 @@ export function SettingsPanel() {
       icon={<Settings2 className="h-4 w-4" />}
     >
       {/* mobile: horizontal section pills */}
-      <div className="fade-r no-scrollbar mb-4 flex gap-1 overflow-x-auto pb-1 md:hidden" role="tablist" aria-label="Settings sections">
+      <FadeRail className="mb-4 flex gap-1 pb-1 md:hidden" role="tablist" aria-label="Settings sections">
         {SECTIONS.map((s) => {
           const Icon = s.icon;
           const active = section === s.id;
@@ -1498,7 +1516,7 @@ export function SettingsPanel() {
             </button>
           );
         })}
-      </div>
+      </FadeRail>
 
       <div className="flex gap-5">
         {/* desktop: sticky sidebar */}

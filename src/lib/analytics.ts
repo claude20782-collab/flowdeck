@@ -58,6 +58,15 @@ export function focusMinutesToday(sessions: FocusSession[], liveFocusMs = 0): nu
   return done + liveFocusMs / 60000;
 }
 
+/** Study minutes today: manual logs + subject-tagged focus sessions (real data only). */
+export function studyMinutesToday(sessions: FocusSession[], studyLogs: StudyLogEntry[]): number {
+  const today = todayKey();
+  const fromSessions =
+    sessions.filter((s) => s.subjectId && dateKey(s.startedAt) === today).reduce((m, s) => m + s.durationMs, 0) / 60000;
+  const fromLogs = studyLogs.filter((l) => l.date === today).reduce((m, l) => m + l.minutes, 0);
+  return fromSessions + fromLogs;
+}
+
 /** Average completed-session length in minutes. */
 export function avgSessionMinutes(sessions: FocusSession[]): number {
   if (sessions.length === 0) return 0;

@@ -1,6 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
+import { Moon, Sun, Sunrise, Sunset } from "lucide-react";
 import { WidgetCard } from "../widget-card";
 import { useNow } from "@/hooks/use-app";
 import { useSettingsStore } from "@/lib/store/settings-store";
@@ -13,6 +14,12 @@ function greetingForHour(h: number): string {
   if (h < 17) return "Good afternoon";
   if (h < 21) return "Good evening";
   return "Good night";
+}
+
+/** Time-of-day icon: dawn → morning sun → afternoon sun → dusk → night moon. */
+function timeIconEl(h: number) {
+  const Icon = h < 6 || h >= 21 ? Moon : h < 8 ? Sunrise : h < 17 ? Sun : Sunset;
+  return <Icon className="h-3.5 w-3.5" style={{ color: "var(--accent)" }} />;
 }
 
 export function GreetingWidget() {
@@ -47,9 +54,10 @@ export function GreetingWidget() {
           </div>
         </div>
         <div
-          className="rounded-full border hairline px-3 py-1.5 text-xs font-medium text-muted-c"
+          className="flex items-center gap-2 rounded-full border hairline px-3 py-1.5 text-xs font-medium text-muted-c"
           aria-hidden="true"
         >
+          {timeIconEl(date.getHours())}
           {format(date, "HH:mm")}
         </div>
       </div>

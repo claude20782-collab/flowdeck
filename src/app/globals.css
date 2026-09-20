@@ -183,6 +183,25 @@
   box-shadow: var(--shadow-1);
   transition: border-color 0.25s ease, box-shadow 0.3s ease, background-color 0.3s ease, transform 0.2s ease;
 }
+.widget-hover::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    color-mix(in srgb, var(--text) 26%, transparent),
+    transparent
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+.widget-hover:hover::before {
+  opacity: 1;
+}
 .widget-hover:hover {
   border-color: color-mix(in srgb, var(--text) 16%, transparent);
   box-shadow: var(--shadow-2);
@@ -217,6 +236,7 @@
   letter-spacing: -0.03em;
   line-height: 1;
   font-weight: 200;
+  text-shadow: 0 0 32px color-mix(in srgb, var(--accent) 16%, transparent);
 }
 .display-time strong {
   font-weight: 600;
@@ -392,14 +412,40 @@ input[type="range"].fd-range::-moz-range-thumb {
 
 /* Right-edge fade affordance for horizontally scrollable chip rails.
    Apply `fade-r` directly on the overflow-x-auto container: its content
-   fades out near the right edge — works on any background (glass cards too). */
+   fades out near the right edge — works on any background (glass cards too).
+   `data-fade` (set by <FadeRail/>) refines it dynamically:
+     start = right fade only (default, also pre-hydration)
+     mid   = both edges faded (user scrolled away from the start)
+     end   = nothing hidden to the right → no fade at all */
 .fade-r {
   --fade-r-w: 34px;
   -webkit-mask-image: linear-gradient(to right, black 0%, black calc(100% - var(--fade-r-w)), transparent 100%);
   mask-image: linear-gradient(to right, black 0%, black calc(100% - var(--fade-r-w)), transparent 100%);
 }
+.fade-r[data-fade="mid"] {
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black var(--fade-r-w),
+    black calc(100% - var(--fade-r-w)),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black var(--fade-r-w),
+    black calc(100% - var(--fade-r-w)),
+    transparent 100%
+  );
+}
+.fade-r[data-fade="end"] {
+  -webkit-mask-image: none;
+  mask-image: none;
+}
 @media (prefers-reduced-motion: reduce) {
-  .fade-r {
+  .fade-r,
+  .fade-r[data-fade="mid"],
+  .fade-r[data-fade="end"] {
     -webkit-mask-image: none;
     mask-image: none;
   }

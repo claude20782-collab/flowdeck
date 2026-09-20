@@ -27,8 +27,12 @@ export function WidgetCard({ title, icon, actions, children, className, bodyClas
       {title && (
         <header className={cn("flex min-h-[34px] items-center gap-2", compact ? "px-3.5 pt-3" : "px-4 pt-3.5")}>
           {icon && (
-            <span className="flex items-center text-accent" aria-hidden="true">
-              {icon}
+            <span
+              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md"
+              style={{ background: "color-mix(in srgb, var(--accent) 14%, transparent)" }}
+              aria-hidden="true"
+            >
+              <span className="flex items-center text-accent scale-90">{icon}</span>
             </span>
           )}
           <h3 className="text-[13px] font-semibold tracking-tight">{title}</h3>
