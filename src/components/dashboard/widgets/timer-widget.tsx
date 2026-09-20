@@ -6,8 +6,10 @@ import { useTimerStore, elapsedOf, remainingOf, durationFor } from "@/lib/store/
 import { useSettingsStore } from "@/lib/store/settings-store";
 import { useStudyStore } from "@/lib/store/study-store";
 import { useUIStore } from "@/lib/store/ui-store";
+import { useSessionStore } from "@/lib/store/session-store";
 import { useNow } from "@/hooks/use-app";
-import { fmtDuration, clamp } from "@/lib/utils";
+import { GoalBar } from "@/components/charts/goal-ring";
+import { fmtDuration, clamp, dateKey, todayKey } from "@/lib/utils";
 import type { TimerMode } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Play, Pause, Square, SkipForward, RotateCcw, Tag, Maximize2, ChevronDown } from "lucide-react";
@@ -41,6 +43,7 @@ export function TimerWidget({ config }: { config: Record<string, unknown> }) {
   const setFocusLayout = useUIStore((s) => s.setFocusLayout);
   const subjects = useStudyStore((s) => s.subjects);
   const chapters = useStudyStore((s) => s.chapters);
+  const sessions = useSessionStore((s) => s.sessions);
 
   const running = state.status === "running";
   const now = useNow(250, running);
@@ -49,6 +52,18 @@ export function TimerWidget({ config }: { config: Record<string, unknown> }) {
   const elapsed = elapsedOf(state);
   const remaining = state.mode === "stopwatch" ? Infinity : Math.max(0, remainingOf(state));
   const display = state.mode === "stopwatch" ? elapsed : remaining;
+
+  /* daily goal progress (completed sessions + live focus-phase time) */
+  const goalMin = timerConfig.dailyGoalMin;
+  const goalMinutes = useMemo(() => {
+    const done = sessions
+      .filter((s) => dateKey(s.startedAt) === todayKey())
+      .reduce((m, s) => m + s.durationMs / 60000, 0);
+    const live = state.status !== "idle" && state.phase === "focus"
+      ? Math.min(elapsed, state.mode === "stopwatch" ? elapsed : state.durationMs) / 60000
+      : 0;
+    return done + live;
+  }, [sessions, elapsed, state.status, state.phase, state.mode, state.durationMs]);
 
   const progress = useMemo(() => {
     if (state.mode === "stopwatch" || state.durationMs === 0) return 0;
@@ -217,6 +232,13 @@ export function TimerWidget({ config }: { config: Record<string, unknown> }) {
           <Maximize2 className="h-4 w-4" />
         </IconBtn>
       </div>
+
+      {/* daily goal bar */}
+      {goalMin > 0 && (
+        <div className="mt-3">
+          <GoalBar minutes={goalMinutes} goalMin={goalMin} />
+        </div>
+      )}
 
       {/* progress line */}
       {state.durationMs > 0 && state.status !== "idle" && (

@@ -319,7 +319,7 @@ export function SoundPanel() {
       {/* presets */}
       <PanelSection>Presets</PanelSection>
       <div
-        className="no-scrollbar -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1"
+        className="fade-r no-scrollbar -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1"
         role="group"
         aria-label="Sound presets"
       >

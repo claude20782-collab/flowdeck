@@ -6,7 +6,7 @@
  *  - never caches non-GET or external origins
  */
 
-const VERSION = "flowdeck-v3";
+const VERSION = "flowdeck-v4";
 const SHELL_CACHE = `${VERSION}-shell`;
 const ASSET_CACHE = `${VERSION}-assets`;
 const OFFLINE_URL = "/offline.html";

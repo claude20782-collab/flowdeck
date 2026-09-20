@@ -52,6 +52,12 @@ export function sessionsToday(sessions: FocusSession[]): FocusSession[] {
   return sessions.filter((s) => dateKey(s.startedAt) === today);
 }
 
+/** Focus minutes today: completed sessions plus live in-progress session time (if focus phase). */
+export function focusMinutesToday(sessions: FocusSession[], liveFocusMs = 0): number {
+  const done = sessionsToday(sessions).reduce((m, s) => m + s.durationMs, 0) / 60000;
+  return done + liveFocusMs / 60000;
+}
+
 /** Average completed-session length in minutes. */
 export function avgSessionMinutes(sessions: FocusSession[]): number {
   if (sessions.length === 0) return 0;

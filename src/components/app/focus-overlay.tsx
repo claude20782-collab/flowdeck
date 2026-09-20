@@ -10,6 +10,7 @@ import { useSessionStore } from "@/lib/store/session-store";
 import { useSettingsStore } from "@/lib/store/settings-store";
 import { useNow, useCursorIdle } from "@/hooks/use-app";
 import { fmtDuration, fmtMinutes, todayKey } from "@/lib/utils";
+import { GoalRing } from "@/components/charts/goal-ring";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import {
@@ -94,6 +95,17 @@ export function FocusOverlay() {
       .reduce((m, s) => m + s.durationMs / 60000, 0);
     return { minutes, count: sessions.filter((s) => format(new Date(s.startedAt), "yyyy-MM-dd") === today).length };
   }, [sessions]);
+
+  /* daily goal progress: completed sessions + live focus-phase time */
+  const goalMin = settings.dailyGoalMin;
+  const liveFocusMs =
+    state.status !== "idle" && state.phase === "focus"
+      ? Math.min(elapsed, state.mode === "stopwatch" ? elapsed : state.durationMs)
+      : 0;
+  const goalMinutes = todayStats.minutes + liveFocusMs / 60000;
+  const goalPct = goalMin > 0 ? goalMinutes / goalMin : 0;
+  const goalDone = goalMin > 0 && goalMinutes >= goalMin;
+  const justHitGoal = goalDone && goalPct < 1.08;
 
   const immersive = layout === "immersive";
   const showChrome = chromeVisible || !cursorHidden || !immersive;
@@ -252,6 +264,31 @@ export function FocusOverlay() {
                   <span className="text-base font-semibold tabular-nums">{todayStats.count}</span> sessions
                 </span>
               </div>
+            )}
+
+            {/* daily goal ring (standard/study layouts) */}
+            {goalMin > 0 && (layout === "standard" || layout === "study") && (
+              <motion.div
+                className="flex items-center gap-3 rounded-full px-4 py-2"
+                style={{
+                  background: goalDone
+                    ? "color-mix(in srgb, var(--positive) 12%, transparent)"
+                    : "color-mix(in srgb, var(--text) 6%, transparent)"
+                }}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <GoalRing minutes={goalMinutes} goalMin={goalMin} size={44} stroke={5} showLabel={false} />
+                <div className="text-left">
+                  <div className="text-xs font-semibold" style={{ color: goalDone ? "var(--positive)" : "var(--text)" }}>
+                    {goalDone ? "Daily goal complete" : "Daily focus goal"}
+                  </div>
+                  <div className="text-[11px] tabular-nums text-muted-c">
+                    {fmtMinutes(goalMinutes)} / {fmtMinutes(goalMin)}
+                    {justHitGoal ? " — nice work!" : ""}
+                  </div>
+                </div>
+              </motion.div>
             )}
 
             {/* controls */}

@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { lsPersistConfig } from "./config";
+import { lsPersistConfig, deepMergePersisted } from "./config";
 import type { TimerMode } from "@/lib/types";
 
 export interface TimerSettings {
@@ -17,6 +17,7 @@ export interface TimerSettings {
   vibrate: boolean;
   keepAwake: boolean;
   confirmSkip: boolean;
+  dailyGoalMin: number; // daily focus target in minutes (0 = off)
 }
 
 export interface AppSettings {
@@ -74,6 +75,7 @@ const DEFAULT_SETTINGS: AppSettings = {
     vibrate: true,
     keepAwake: false,
     confirmSkip: false,
+    dailyGoalMin: 120,
   },
   defaultTimerMode: "pomodoro",
   installHintDismissed: false,
@@ -98,6 +100,9 @@ export const useSettingsStore = create<SettingsStore>()(
       updateTimer: (patch) => set((s) => ({ timer: { ...s.timer, ...patch } })),
       resetSettings: () => set({ ...DEFAULT_SETTINGS }),
     }),
-    lsPersistConfig<SettingsStore>("flowdeck-settings")
+    {
+      ...lsPersistConfig<SettingsStore>("flowdeck-settings"),
+      merge: (persisted, current) => deepMergePersisted(persisted, current),
+    }
   )
 );

@@ -34,7 +34,7 @@ import { PanelActionButton, PanelEmptyState, PanelShell } from "./panel-shell";
 import { useNoteStore } from "@/lib/store/note-store";
 import type { Note } from "@/lib/types";
 import { renderMarkdown, stripMarkdown } from "@/lib/markdown";
-import { cn } from "@/lib/utils";
+import { cn, modKeyLabel } from "@/lib/utils";
 
 /* ═══════════════════════════ helpers ═══════════════════════════ */
 
@@ -486,7 +486,7 @@ function NoteEditor({
           value={content}
           onChange={(e) => setContent(e.target.value)}
           onKeyDown={onEditorKeyDown}
-          placeholder="Start writing… markdown supported (⌘↵ to save)"
+          placeholder={`Start writing… markdown supported (${modKeyLabel()}↵ to save)`}
           aria-label="Note content"
           className="mt-2 min-h-[50vh] w-full flex-1 resize-none rounded-lg border hairline bg-transparent px-3 py-2.5 text-sm leading-relaxed outline-none transition-colors placeholder:text-muted-c focus:border-[color-mix(in_srgb,var(--accent)_50%,transparent)] md:min-h-0"
         />

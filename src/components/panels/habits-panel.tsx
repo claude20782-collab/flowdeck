@@ -376,6 +376,126 @@ function HabitCard({
   );
 }
 
+/* ---------- year consistency heatmap ---------- */
+
+const MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/** GitHub-style heatmap of aggregate habit completions for the trailing 12 months. */
+function YearHeatmap({ logs, weekStartsOn }: { logs: HabitLog[]; weekStartsOn: 0 | 1 }) {
+  const weeks = useMemo(() => {
+    const today = new Date();
+    today.setHours(12, 0, 0, 0);
+    /* end of current week (aligned to weekStart) */
+    const end = new Date(today);
+    const shift = (end.getDay() - weekStartsOn + 7) % 7;
+    end.setDate(today.getDate() + (6 - shift));
+    const start = new Date(end);
+    start.setDate(end.getDate() - 7 * 52 + 1);
+
+    const cols: { key: string; date: Date; count: number; future: boolean }[][] = [];
+    const byDate = new Map<string, number>();
+    for (const l of logs) {
+      if (l.count > 0) byDate.set(l.date, (byDate.get(l.date) ?? 0) + 1);
+    }
+    const cursor = new Date(start);
+    for (let w = 0; w < 53; w++) {
+      const col: { key: string; date: Date; count: number; future: boolean }[] = [];
+      for (let d = 0; d < 7; d++) {
+        const future = cursor > today;
+        col.push({ key: dateKey(cursor), date: new Date(cursor), count: byDate.get(dateKey(cursor)) ?? 0, future });
+        cursor.setDate(cursor.getDate() + 1);
+      }
+      cols.push(col);
+    }
+    return cols;
+  }, [logs, weekStartsOn]);
+
+  const maxCount = useMemo(() => Math.max(1, ...weeks.flat().map((c) => c.count)), [weeks]);
+  const activeDays = weeks.flat().filter((c) => c.count > 0).length;
+  const yearTotal = weeks.flat().reduce((m, c) => m + c.count, 0);
+
+  const intensity = (count: number) => {
+    if (count === 0) return "color-mix(in srgb, var(--text) 8%, transparent)";
+    const t = 0.28 + 0.72 * (count / maxCount);
+    return `color-mix(in srgb, var(--positive) ${Math.round(t * 100)}%, transparent)`;
+  };
+
+  /* month label positions: first week of each month */
+  const monthLabels = useMemo(() => {
+    const labels: { week: number; label: string }[] = [];
+    let lastMonth = -1;
+    weeks.forEach((col, w) => {
+      const m = col[0].date.getMonth();
+      if (m !== lastMonth) {
+        labels.push({ week: w, label: MONTHS_SHORT[m] });
+        lastMonth = m;
+      }
+    });
+    return labels;
+  }, [weeks]);
+
+  return (
+    <section className="widget p-3 sm:p-4" aria-label="Habit consistency over the last 12 months">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h3 className="text-sm font-semibold">Consistency</h3>
+          <p className="text-[11px] text-muted-c">
+            {yearTotal} completions · {activeDays} active days (12 mo)
+          </p>
+        </div>
+        <div className="flex items-center gap-1 text-[10px] text-muted-c" aria-hidden="true">
+          <span>less</span>
+          {[0, 1, Math.ceil(maxCount / 2), maxCount].map((c, i) => (
+            <span key={i} className="h-2.5 w-2.5 rounded-[3px]" style={{ background: intensity(c) }} />
+          ))}
+          <span>more</span>
+        </div>
+      </div>
+
+      <div className="fd-scroll -mx-1 overflow-x-auto px-1 pb-1">
+        <div className="relative min-w-max">
+          {/* month labels */}
+          <div className="mb-1 flex gap-[3px]" aria-hidden="true">
+            {weeks.map((_, w) => {
+              const label = monthLabels.find((l) => l.week === w);
+              return (
+                <span key={w} className="w-[11px] shrink-0 text-[9px] font-medium text-muted-c">
+                  {label ? label.label : ""}
+                </span>
+              );
+            })}
+          </div>
+          <div className="flex gap-[3px]">
+            {/* weekday labels */}
+            <div className="mr-0.5 flex flex-col gap-[3px]" aria-hidden="true">
+              {DAY_INITIALS.map((d, i) => {
+                const dayIdx = (i + weekStartsOn) % 7;
+                return (
+                  <span key={i} className="flex h-[11px] items-center text-[8px] leading-none text-muted-c">
+                    {dayIdx === 1 || dayIdx === 3 || dayIdx === 5 ? DAY_INITIALS[dayIdx] : ""}
+                  </span>
+                );
+              })}
+            </div>
+            {weeks.map((col, w) => (
+              <div key={w} className="flex flex-col gap-[3px]">
+                {col.map((cell) => (
+                  <span
+                    key={cell.key}
+                    className={`h-[11px] w-[11px] shrink-0 rounded-[3px] transition-transform hover:scale-125 ${cell.future ? "opacity-20" : ""}`}
+                    style={{ background: intensity(cell.count) }}
+                    title={`${humanDate(cell.key)} — ${cell.count} habit${cell.count === 1 ? "" : "s"} completed`}
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 /* ---------- create / edit dialog ---------- */
 
 function HabitDialog({
@@ -799,6 +919,12 @@ export function HabitsPanel() {
                 ))}
               </div>
             </section>
+          </div>
+
+          {/* year heatmap */}
+          <div>
+            <PanelSection>Consistency</PanelSection>
+            <YearHeatmap logs={logs} weekStartsOn={weekStartsOn} />
           </div>
 
           {/* habit list */}

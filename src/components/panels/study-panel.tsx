@@ -8,6 +8,8 @@ import {
   BookOpen,
   Check,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   ClipboardList,
   FileQuestion,
   GraduationCap,
@@ -44,7 +46,8 @@ import {
   weakTopics,
 } from "@/lib/store/study-store";
 import { useSessionStore } from "@/lib/store/session-store";
-import { cn, daysAgoKey, fmtMinutes, todayKey } from "@/lib/utils";
+import { useSettingsStore } from "@/lib/store/settings-store";
+import { cn, dateKey, daysAgoKey, fmtMinutes, todayKey } from "@/lib/utils";
 import { HBarChart, LineChart, ProgressRing } from "@/components/charts/primitives";
 import type {
   Chapter,
@@ -1859,6 +1862,64 @@ function LogTab() {
 
   const hasWeekData = distData.length > 0;
 
+  /* monthly calendar: per-day study minutes (logs + subject-tagged sessions) */
+  const [calOffset, setCalOffset] = useState(0);
+  const minutesByDate = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const l of studyLogs) m.set(l.date, (m.get(l.date) ?? 0) + l.minutes);
+    for (const s of sessions) {
+      if (s.subjectId) {
+        const k = dateKey(s.startedAt);
+        m.set(k, (m.get(k) ?? 0) + s.durationMs / 60000);
+      }
+    }
+    return m;
+  }, [studyLogs, sessions]);
+
+  const calMonth = useMemo(() => {
+    const d = new Date();
+    d.setDate(1);
+    d.setMonth(d.getMonth() + calOffset);
+    return d;
+  }, [calOffset]);
+
+  const calCells = useMemo(() => {
+    const y = calMonth.getFullYear();
+    const mo = calMonth.getMonth();
+    const first = new Date(y, mo, 1);
+    const last = new Date(y, mo + 1, 0);
+    const weekStart = useSettingsStore.getState().weekStart;
+    const leading = (first.getDay() - weekStart + 7) % 7;
+    const cells: { key: string; day: number; inMonth: boolean }[] = [];
+    for (let i = 0; i < leading; i++) cells.push({ key: `pad-${i}`, day: 0, inMonth: false });
+    for (let d = 1; d <= last.getDate(); d++) {
+      cells.push({ key: dateKey(new Date(y, mo, d)), day: d, inMonth: true });
+    }
+    while (cells.length % 7 !== 0) cells.push({ key: `tail-${cells.length}`, day: 0, inMonth: false });
+    return cells;
+  }, [calMonth]);
+
+  const monthMinutes = useMemo(() => {
+    const prefix = format(calMonth, "yyyy-MM");
+    let total = 0;
+    let days = 0;
+    for (const [k, v] of minutesByDate) {
+      if (k.startsWith(prefix)) {
+        total += v;
+        if (v > 0) days++;
+      }
+    }
+    return { total, days };
+  }, [minutesByDate, calMonth]);
+
+  const todayK = todayKey();
+  const weekStart = useSettingsStore((s) => s.weekStart);
+  const CAL_DAYS = weekStart === 1 ? ["M", "T", "W", "T", "F", "S", "S"] : ["S", "M", "T", "W", "T", "F", "S"];
+  const maxDayMin = useMemo(
+    () => Math.max(60, ...calCells.filter((c) => c.inMonth).map((c) => minutesByDate.get(c.key) ?? 0)),
+    [calCells, minutesByDate]
+  );
+
   return (
     <div>
       {/* add manual study time */}
@@ -1909,6 +1970,80 @@ function LogTab() {
             Add study time
           </PanelActionButton>
         </div>
+      </div>
+
+      {/* monthly study calendar */}
+      <PanelSection
+        action={
+          <span className="text-[10px] tabular-nums text-muted-c">
+            {fmtMinutes(monthMinutes.total)} · {monthMinutes.days} active days
+          </span>
+        }
+      >
+        Study calendar
+      </PanelSection>
+      <div className="widget mb-4 p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <span className="text-sm font-semibold tabular-nums">{format(calMonth, "MMMM yyyy")}</span>
+          <div className="flex items-center gap-0.5">
+            <button
+              type="button"
+              className="press flex h-7 w-7 items-center justify-center rounded-lg text-muted-c transition-colors hover:text-[var(--text)]"
+              onClick={() => setCalOffset((m) => m - 1)}
+              aria-label="Previous month"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              className="press flex h-7 items-center rounded-lg px-2 text-[10px] font-semibold text-muted-c transition-colors hover:text-[var(--text)]"
+              onClick={() => setCalOffset(0)}
+              disabled={calOffset === 0}
+            >
+              Today
+            </button>
+            <button
+              type="button"
+              className="press flex h-7 w-7 items-center justify-center rounded-lg text-muted-c transition-colors hover:text-[var(--text)]"
+              onClick={() => setCalOffset((m) => m + 1)}
+              aria-label="Next month"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+        <div className="grid grid-cols-7 gap-1.5" role="grid" aria-label={`${format(calMonth, "MMMM yyyy")} study time`}>
+          {CAL_DAYS.map((d, i) => (
+            <span key={i} className="pb-1 text-center text-[9px] font-semibold text-muted-c" aria-hidden="true">
+              {d}
+            </span>
+          ))}
+          {calCells.map((c, i) => {
+            if (!c.inMonth) return <span key={c.key + i} aria-hidden="true" />;
+            const min = minutesByDate.get(c.key) ?? 0;
+            const t = min > 0 ? 0.2 + 0.8 * Math.min(1, min / maxDayMin) : 0;
+            const isToday = c.key === todayK;
+            const isFuture = c.key > todayK;
+            return (
+              <div
+                key={c.key}
+                className="relative flex aspect-square items-center justify-center rounded-lg text-[11px] font-medium tabular-nums transition-transform hover:scale-105"
+                style={{
+                  background: t > 0 ? `color-mix(in srgb, var(--accent) ${Math.round(t * 30)}%, transparent)` : undefined,
+                  color: isToday ? "var(--accent)" : min > 0 ? "var(--text)" : "var(--text-muted)",
+                  opacity: isFuture ? 0.35 : 1,
+                  boxShadow: isToday ? "inset 0 0 0 1.5px var(--accent)" : undefined,
+                }}
+                title={`${c.key} — ${min > 0 ? fmtMinutes(min) + " of study" : "no study logged"}`}
+                role="gridcell"
+                aria-label={`${c.key}: ${min > 0 ? fmtMinutes(min) + " of study" : "no study logged"}`}
+              >
+                {c.day}
+              </div>
+            );
+          })}
+        </div>
+        <p className="mt-2.5 text-center text-[10px] text-muted-c">shade = minutes studied that day</p>
       </div>
 
       {/* recent logs */}

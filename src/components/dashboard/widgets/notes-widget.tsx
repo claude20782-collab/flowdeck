@@ -5,7 +5,7 @@ import { WidgetCard } from "../widget-card";
 import { useNoteStore } from "@/lib/store/note-store";
 import { useUIStore } from "@/lib/store/ui-store";
 import { NotebookPen, Plus, ChevronRight, Pin } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, modKeyLabel } from "@/lib/utils";
 import { stripMarkdown } from "@/lib/markdown";
 
 export function NotesWidget() {
@@ -53,10 +53,10 @@ export function NotesWidget() {
           onKeyDown={(e) => {
             if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) quickSave();
           }}
-          placeholder="Capture a thought… (⌘↵ to save)"
+          placeholder={`Capture a thought… (${modKeyLabel()}↵ to save)`}
           aria-label="Quick note input"
           rows={2}
-          className="min-h-[52px] flex-1 resize-none rounded-lg border hairline bg-transparent px-3 py-2 text-sm outline-none transition-colors placeholder:text-muted-c focus:border-[color-mix(in_srgb,var(--accent)_50%,transparent)]"
+          className="min-h-[52px] flex-1 resize-none rounded-lg border hairline bg-transparent px-3 py-2 text-sm outline-none transition-all placeholder:text-muted-c hover:border-[color-mix(in_srgb,var(--text)_20%,transparent)] focus:border-[color-mix(in_srgb,var(--accent)_50%,transparent)] focus:bg-[color-mix(in_srgb,var(--text)_3%,transparent)]"
         />
         <button
           className="press flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[var(--accent-fg)] disabled:opacity-40"

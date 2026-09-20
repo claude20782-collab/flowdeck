@@ -6,7 +6,18 @@ import { useTaskStore } from "@/lib/store/task-store";
 import { useSessionStore } from "@/lib/store/session-store";
 import { useUIStore } from "@/lib/store/ui-store";
 import { useTimerStore } from "@/lib/store/timer-store";
-import { Sparkles, X, Check, Palette, Timer, Keyboard } from "lucide-react";
+import { isTouchDevice, modKeyLabel } from "@/lib/utils";
+import { Sparkles, X, Check, Palette, Timer, Keyboard, Command } from "lucide-react";
+
+/** Platform detection with lazy init — safe: OnboardingCard only renders
+ *  client-side after BootGate (all stores hydrated). */
+function usePlatform() {
+  const [platform] = useState<{ touch: boolean; mac: boolean }>(() => ({
+    touch: isTouchDevice(),
+    mac: modKeyLabel() === "⌘",
+  }));
+  return platform;
+}
 
 /**
  * First-run onboarding card. Shows only on genuinely fresh installs
@@ -22,6 +33,7 @@ export function OnboardingCard() {
   const startTimer = useTimerStore((s) => s.start);
 
   const [nameDraft, setNameDraft] = useState("");
+  const { touch: isTouch, mac: isMac } = usePlatform();
 
   const isFresh = tasks.length === 0 && sessions.length === 0;
   if (dismissed || !isFresh) return null;
@@ -145,13 +157,21 @@ export function OnboardingCard() {
           </button>
         </div>
 
-        <p className="flex items-center gap-1.5 text-[11px] text-muted-c">
-          <Keyboard className="h-3 w-3 shrink-0" aria-hidden="true" />
-          Press <kbd className="rounded border hairline px-1 py-0.5 text-[10px] font-medium">Ctrl</kbd>+
-          <kbd className="rounded border hairline px-1 py-0.5 text-[10px] font-medium">K</kbd> anytime for the
-          command palette — or <kbd className="rounded border hairline px-1 py-0.5 text-[10px] font-medium">F</kbd>{" "}
-          for focus mode.
-        </p>
+        {isTouch ? (
+          <p className="flex items-center gap-1.5 text-[11px] text-muted-c">
+            <Command className="h-3 w-3 shrink-0" aria-hidden="true" />
+            Everything lives in the bottom bar — panels, workspaces and the search.
+          </p>
+        ) : (
+          <p className="flex flex-wrap items-center gap-1.5 text-[11px] text-muted-c">
+            <Keyboard className="h-3 w-3 shrink-0" aria-hidden="true" />
+            Press
+            <kbd className="rounded border hairline px-1 py-0.5 text-[10px] font-medium">{isMac ? "⌘" : "Ctrl"}</kbd>+
+            <kbd className="rounded border hairline px-1 py-0.5 text-[10px] font-medium">K</kbd> anytime for the
+            command palette — or{" "}
+            <kbd className="rounded border hairline px-1 py-0.5 text-[10px] font-medium">F</kbd> for focus mode.
+          </p>
+        )}
       </div>
     </section>
   );

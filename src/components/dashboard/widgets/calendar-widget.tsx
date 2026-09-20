@@ -99,8 +99,10 @@ export function CalendarWidget() {
               key={key}
               onClick={() => openPanel("tasks")}
               className={cn(
-                "relative mx-auto flex h-8 w-8 items-center justify-center rounded-lg text-xs tabular-nums transition-colors",
-                isSameMonth(d, monthDate) ? "hover:bg-[color-mix(in_srgb,var(--text)_8%,transparent)]" : "opacity-30"
+                "relative mx-auto flex h-8 w-8 items-center justify-center rounded-lg text-xs tabular-nums transition-all duration-150",
+                isSameMonth(d, monthDate)
+                  ? "hover:scale-110 hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)] active:scale-95"
+                  : "opacity-30"
               )}
               style={
                 isToday

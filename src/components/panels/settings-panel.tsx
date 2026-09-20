@@ -710,6 +710,23 @@ function TimerSection() {
           step={1}
           onChange={(v) => updateTimer({ cycles: v })}
         />
+        <Stepper
+          label="Daily focus goal"
+          value={t.dailyGoalMin}
+          min={0}
+          max={600}
+          step={15}
+          format={(v) =>
+            v === 0
+              ? "Off"
+              : v % 60 === 0
+                ? `${v / 60}h`
+                : v >= 60
+                  ? `${Math.floor(v / 60)}h ${v % 60}m`
+                  : `${v} min`
+          }
+          onChange={(v) => updateTimer({ dailyGoalMin: v })}
+        />
       </SettingCard>
 
       <div className="mt-4" />
@@ -1459,7 +1476,7 @@ export function SettingsPanel() {
       icon={<Settings2 className="h-4 w-4" />}
     >
       {/* mobile: horizontal section pills */}
-      <div className="no-scrollbar mb-4 flex gap-1 overflow-x-auto pb-1 md:hidden" role="tablist" aria-label="Settings sections">
+      <div className="fade-r no-scrollbar mb-4 flex gap-1 overflow-x-auto pb-1 md:hidden" role="tablist" aria-label="Settings sections">
         {SECTIONS.map((s) => {
           const Icon = s.icon;
           const active = section === s.id;

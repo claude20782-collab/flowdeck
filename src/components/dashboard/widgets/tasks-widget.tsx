@@ -77,7 +77,7 @@ export function TasksWidget({ config }: { config: Record<string, unknown> }) {
           onKeyDown={(e) => e.key === "Enter" && quickAdd()}
           placeholder="Add a task…"
           aria-label="Quick add task"
-          className="h-9 min-w-0 flex-1 rounded-lg border hairline bg-transparent px-3 text-sm outline-none transition-colors placeholder:text-muted-c focus:border-[color-mix(in_srgb,var(--accent)_50%,transparent)]"
+          className="h-9 min-w-0 flex-1 rounded-lg border hairline bg-transparent px-3 text-sm outline-none transition-all placeholder:text-muted-c hover:border-[color-mix(in_srgb,var(--text)_20%,transparent)] focus:border-[color-mix(in_srgb,var(--accent)_50%,transparent)] focus:bg-[color-mix(in_srgb,var(--text)_3%,transparent)]"
         />
         <button
           className="press flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[var(--accent-fg)] disabled:opacity-40"

@@ -390,6 +390,21 @@ input[type="range"].fd-range::-moz-range-thumb {
   display: none;
 }
 
+/* Right-edge fade affordance for horizontally scrollable chip rails.
+   Apply `fade-r` directly on the overflow-x-auto container: its content
+   fades out near the right edge — works on any background (glass cards too). */
+.fade-r {
+  --fade-r-w: 34px;
+  -webkit-mask-image: linear-gradient(to right, black 0%, black calc(100% - var(--fade-r-w)), transparent 100%);
+  mask-image: linear-gradient(to right, black 0%, black calc(100% - var(--fade-r-w)), transparent 100%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .fade-r {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+}
+
 /* Reduced motion: kill all animations/transitions */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

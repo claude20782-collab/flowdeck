@@ -14,6 +14,24 @@ export function uid(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
+/* ---------- Platform ---------- */
+
+/** Modifier key label for the current platform (⌘ on Apple, Ctrl elsewhere). */
+export function modKeyLabel(): string {
+  if (typeof navigator === "undefined") return "Ctrl";
+  return /mac|iphone|ipad|ipod/i.test(navigator.userAgent) ? "⌘" : "Ctrl";
+}
+
+/** True when the device is primarily touch-driven (no keyboard hints should show). */
+export function isTouchDevice(): boolean {
+  if (typeof window === "undefined" || typeof matchMedia === "undefined") return false;
+  return (
+    window.matchMedia("(pointer: coarse)").matches ||
+    window.matchMedia("(hover: none)").matches ||
+    ("ontouchstart" in window && navigator.maxTouchPoints > 0)
+  );
+}
+
 /* ---------- Dates ---------- */
 
 /** Local YYYY-MM-DD key for today. */

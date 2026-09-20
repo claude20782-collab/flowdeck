@@ -105,7 +105,7 @@ export function SoundWidget() {
       </div>
 
       {/* presets */}
-      <div className="no-scrollbar -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-0.5" role="group" aria-label="Sound presets">
+      <div className="fade-r no-scrollbar -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-0.5" role="group" aria-label="Sound presets">
         {BUILTIN_PRESETS.map((p) => (
           <button
             key={p.id}
