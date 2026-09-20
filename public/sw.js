@@ -1,11 +1,12 @@
 /* Flowdeck service worker — offline shell + runtime caching.
  * Strategy:
  *  - navigation: network-first, offline fallback to cached shell
- *  - static assets (_next/static, icons): cache-first (immutable)
+ *  - static assets (_next/static, icons): network-first (fresh when
+ *    online, cache fallback when offline)
  *  - never caches non-GET or external origins
  */
 
-const VERSION = "flowdeck-v1";
+const VERSION = "flowdeck-v2";
 const SHELL_CACHE = `${VERSION}-shell`;
 const ASSET_CACHE = `${VERSION}-assets`;
 const OFFLINE_URL = "/offline.html";
